@@ -201,7 +201,7 @@ function makeRender() {
   twgl.addExtensionsToContext(gl);
   console.log([gl.drawingBufferWidth, gl.drawingBufferHeight, "Drawing Buffer"]);
   var texture = twgl.createTexture(gl, {
-    mag: gl.NEAREST,
+    mag: gl.LINEAR,
     min: gl.LINEAR,
     src: [0, 0, 255, 255]
   });
@@ -262,6 +262,12 @@ function requestStream() {
       },
       facingMode: {
         ideal: 'environment'
+      },
+      resizeMode: {
+        ideal: 'none'
+      },
+      aspectRatio: {
+        ideal: window.innerWidth / window.innerHeight
       }
     }
   };
@@ -54752,6 +54758,9 @@ var StatSampler = /*#__PURE__*/function () {
       }),
       indices: (0, _prelude.range)(nsamples)
     });
+    this.textureSampler = twgl.createSampler(gl, {
+      minMag: gl.NEAREST
+    });
     this.fb = twgl.createFramebufferInfo(gl, [{
       type: gl.FLOAT,
       format: gl.RGBA,
@@ -54780,7 +54789,8 @@ var StatSampler = /*#__PURE__*/function () {
           uVertexPosition: positions[channel],
           uChannelIndex: channels[channel],
           uSampler: {
-            texture: texture
+            texture: texture,
+            sampler: this.textureSampler
           }
         });
         gl.drawElements(gl.POINTS, this.nsamples, gl.UNSIGNED_SHORT, 0);

@@ -60,7 +60,7 @@ function makeRender() {
   console.log([gl.drawingBufferWidth, gl.drawingBufferHeight, "Drawing Buffer"]);
 
   const texture =  twgl.createTexture(gl, {
-    mag: gl.NEAREST,
+    mag: gl.LINEAR,
     min: gl.LINEAR,
     src: [0,0,255,255]
   });
@@ -113,7 +113,9 @@ function requestStream() {
     video: {
       width: { ideal: window.innerWidth },
       height: { ideal: window.innerHeight },
-      facingMode: { ideal: 'environment' }
+      facingMode: { ideal: 'environment' },
+      resizeMode: { ideal: 'none' },
+      aspectRatio: { ideal: window.innerWidth/window.innerHeight }
     }
   };
 

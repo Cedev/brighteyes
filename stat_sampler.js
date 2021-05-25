@@ -56,6 +56,10 @@ export class StatSampler {
       indices: range(nsamples)
     });
 
+    this.textureSampler = twgl.createSampler(gl, {
+      minMag: gl.NEAREST
+    });
+
     this.fb = twgl.createFramebufferInfo(gl, [
       { type: gl.FLOAT,
         format: gl.RGBA,
@@ -86,7 +90,10 @@ export class StatSampler {
       twgl.setUniforms(this.program, {
         uVertexPosition: positions[channel],
         uChannelIndex: channels[channel],
-        uSampler: {texture: texture}
+        uSampler: {
+          texture: texture,
+          sampler: this.textureSampler
+        }
       });
           
       gl.drawElements(gl.POINTS, this.nsamples, gl.UNSIGNED_SHORT, 0);
