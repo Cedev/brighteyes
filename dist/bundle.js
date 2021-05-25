@@ -21,6 +21,8 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 
 var nsamples = 1000;
 console.log([window.innerWidth, window.innerHeight, "Window"]);
+screen.orientation.lock('landscape')["catch"](console.log);
+console.log([window.innerWidth, window.innerHeight, "Window Locked"]);
 var camera = document.getElementById('camera');
 var canvas = document.getElementById('screen');
 canvas.width = window.innerWidth;
@@ -24224,9 +24226,21 @@ var Screen = /*#__PURE__*/function () {
       gl.enable(gl.DEPTH_TEST);
       gl.depthFunc(gl.LEQUAL);
       twgl.setBuffersAndAttributes(gl, this.program, this.buffers);
-      var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+      var screenAr = gl.canvas.clientWidth / gl.canvas.clientHeight;
+      var dataAr = width / height;
+      var arRatio = dataAr / screenAr;
 
       var positionMatrix = _glMatrix.mat4.create();
+
+      if (arRatio > 1) {
+        // data is wider than screen
+        // shrink positions vertically
+        positionMatrix[4 * 1 + 1] = 1 / arRatio;
+      } else if (arRatio < 1) {
+        // data is taller than screen
+        // shrink positions horizontally
+        positionMatrix[0] = arRatio;
+      }
 
       twgl.setUniforms(this.program, {
         uPositionMatrix: positionMatrix,

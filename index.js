@@ -12,10 +12,15 @@ const nsamples = 1000;
 
 console.log([window.innerWidth, window.innerHeight, "Window"]);
 
+screen.orientation.lock('landscape').catch(console.log);
+
+console.log([window.innerWidth, window.innerHeight, "Window Locked"]);
+
 const camera = document.getElementById('camera');
 const canvas = document.getElementById('screen');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+
 
 canvas.addEventListener(
   "click",

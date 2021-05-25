@@ -69,8 +69,20 @@ export class Screen {
     
     twgl.setBuffersAndAttributes(gl, this.program, this.buffers);
     
-    const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight; 
+    const screenAr = gl.canvas.clientWidth / gl.canvas.clientHeight; 
+    const dataAr = width / height;
+    const arRatio = dataAr/screenAr;
+
     const positionMatrix = mat4.create();
+    if (arRatio > 1) {
+      // data is wider than screen
+      // shrink positions vertically
+      positionMatrix[4*1+1] = 1/arRatio;
+    } else if (arRatio < 1) {
+      // data is taller than screen
+      // shrink positions horizontally
+      positionMatrix[0] = arRatio;
+    }
 
     twgl.setUniforms(this.program, {
       uPositionMatrix: positionMatrix,
