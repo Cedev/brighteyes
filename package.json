@@ -13,11 +13,15 @@
   "dependencies": {
     "gl-matrix": "^3.3.0",
     "ml-matrix": "^6.8.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "twgl.js": "^4.19.1"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",
+    "@babel/plugin-syntax-jsx": "^7.12.13",
     "@babel/preset-env": "^7.14.2",
+    "@babel/preset-react": "^7.13.13",
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
     "watchify": "^4.0.0"
@@ -29,6 +33,10 @@
         {
           "presets": [
             "@babel/preset-env"
+          ],
+          "plugins": [
+            "@babel/plugin-syntax-jsx",
+            "@babel/plugin-transform-react-jsx"
           ]
         }
       ]

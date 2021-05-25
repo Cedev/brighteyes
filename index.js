@@ -4,16 +4,15 @@ import {
   matrixFrom,
   decorStretcher
 } from './la.js';
+import { Camera } from './camera.js';
 import { StatSampler } from './stat_sampler.js';
 import { Screen } from './screen.js';
 import { range } from './prelude.js'
 
 const nsamples = 1000;
 
-
-const camera = document.getElementById('camera');
+const camera = new Camera();
 const canvas = document.getElementById('screen');
-
 
 canvas.addEventListener(
   "click",
@@ -21,10 +20,6 @@ canvas.addEventListener(
     mode = (mode + 1) % modes.length;
   }
 )
-
-camera.onloadedmetadata = e => {
-  console.log([camera.videoWidth, camera.videoHeight, "Camera"]);
-}
 
 function sumsToCov(s) {
   // Convert a 4x4 matrix containing the outer product of sampled pixels with themselves
@@ -58,13 +53,7 @@ const modes = [{
 var colorTransformation = mat4.create();
 
 
-function captureVideo(gl, texture, video) {
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0,  gl.RGBA,
-    gl.RGBA, gl.UNSIGNED_BYTE, video);
-}
-
-function main() {
+function makeRender() {
   const gl = canvas.getContext('webgl2');
   twgl.addExtensionsToContext(gl);
   
@@ -81,7 +70,7 @@ function main() {
 
   function render(now, frame) {
     if (frame) {
-      captureVideo(gl, texture, camera);
+      camera.capture(gl, texture);
       
       var pixels = statSampler.sample(texture);
       const sums = (i,j) => pixels[i*4 + j];
@@ -109,18 +98,11 @@ function main() {
 
     camera.requestVideoFrameCallback(render);
   }
-  requestAnimationFrame(now => render(now, null));
+  return render;
 }
 
-console.log([window.innerWidth, window.innerHeight, "Window"]);
-
-canvas.requestFullscreen().then(_ => {
-  // Lock the screen to the current orientation
-  console.log([window.innerWidth, window.innerHeight, screen.orientation.type, "Fullscreen"]);
-  return screen.orientation.lock(screen.orientation.type).then( _ => {
-    console.log([window.innerWidth, window.innerHeight, screen.orientation.type, "Locked"]);
-  });
-}).catch(console.log).then(_ => {
+function requestStream() {
+  console.log([window.innerWidth, window.innerHeight, "Window"]);
 
   // Needed despite css to get the canvas to render at a high resolution
   canvas.width = window.innerWidth;
@@ -135,9 +117,11 @@ canvas.requestFullscreen().then(_ => {
     }
   };
 
-  navigator.mediaDevices.getUserMedia(constraints).then(stream => {
-    camera.srcObject = stream;
-  }).catch(console.log);
+  camera.change(constraints);
+}
 
-  main();
-}).catch(console.log);
+requestStream();
+const render = makeRender();
+requestAnimationFrame(now => render(now, null));
+
+window.addEventListener('resize', requestStream);

@@ -1,2 +1,4 @@
 dist/*tmp*
 node_modules
+.vscode
+shell.bat
