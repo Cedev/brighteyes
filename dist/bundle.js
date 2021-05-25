@@ -20,34 +20,14 @@ function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "functio
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 var nsamples = 1000;
-console.log([window.innerWidth, window.innerHeight, "Window"]);
-screen.orientation.lock(screen.orientation.type)["catch"](console.log);
-console.log([window.innerWidth, window.innerHeight, "Window Locked"]);
 var camera = document.getElementById('camera');
 var canvas = document.getElementById('screen');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
 canvas.addEventListener("click", function (_) {
   mode = (mode + 1) % modes.length;
 });
 
 camera.onloadedmetadata = function (e) {
   console.log([camera.videoWidth, camera.videoHeight, "Camera"]);
-};
-
-var constraints = {
-  audio: false,
-  video: {
-    width: {
-      ideal: window.innerWidth
-    },
-    height: {
-      ideal: window.innerHeight
-    },
-    facingMode: {
-      ideal: 'environment'
-    }
-  }
 };
 
 function sumsToCov(s) {
@@ -137,10 +117,36 @@ function main() {
   });
 }
 
-navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
-  camera.srcObject = stream;
-});
-main();
+console.log([window.innerWidth, window.innerHeight, "Window"]);
+canvas.requestFullscreen().then(function (_) {
+  // Lock the screen to the current orientation
+  console.log([window.innerWidth, window.innerHeight, screen.orientation.type, "Fullscreen"]);
+  return screen.orientation.lock(screen.orientation.type).then(function (_) {
+    console.log([window.innerWidth, window.innerHeight, screen.orientation.type, "Locked"]);
+  });
+})["catch"](console.log).then(function (_) {
+  // Needed despite css to get the canvas to render at a high resolution
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  var constraints = {
+    audio: false,
+    video: {
+      width: {
+        ideal: window.innerWidth
+      },
+      height: {
+        ideal: window.innerHeight
+      },
+      facingMode: {
+        ideal: 'environment'
+      }
+    }
+  };
+  navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
+    camera.srcObject = stream;
+  })["catch"](console.log);
+  main();
+})["catch"](console.log);
 
 },{"./la.js":2,"./prelude.js":20,"./screen.js":21,"./stat_sampler.js":22,"gl-matrix":4,"twgl.js":19}],2:[function(require,module,exports){
 "use strict";
