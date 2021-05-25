@@ -21,7 +21,7 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 
 var nsamples = 1000;
 console.log([window.innerWidth, window.innerHeight, "Window"]);
-screen.orientation.lock('landscape')["catch"](console.log);
+screen.orientation.lock(screen.orientation.type)["catch"](console.log);
 console.log([window.innerWidth, window.innerHeight, "Window Locked"]);
 var camera = document.getElementById('camera');
 var canvas = document.getElementById('screen');
