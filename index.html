@@ -1,0 +1,80 @@
+<html>
+<head>
+  <script src="dist/bundle.js" defer></script>
+  <style>
+    body {
+      margin: 0;
+    }
+    #camera {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<div>
+
+  <video id="camera" playsinline autoplay></video>
+  <canvas id="screen"></canvas>
+  
+</div>
+
+<script id="screen-vertex" type="x-shader/x-vertex">
+  attribute vec4 aVertexPosition;
+  attribute vec2 aTextureCoord;
+
+  uniform highp mat4 uPositionMatrix;
+
+  varying highp vec2 vTextureCoord;
+
+  void main(void) {
+    gl_Position = uPositionMatrix * aVertexPosition;
+    vTextureCoord = aTextureCoord;
+  }
+</script>
+
+<script id="screen-fragment" type="x-shader/x-fragment">
+  varying highp vec2 vTextureCoord;
+
+  uniform sampler2D uSampler;
+  uniform highp mat4 uColorMatrix;
+
+  void main(void) {
+    highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
+
+    gl_FragColor = uColorMatrix * vec4(texelColor.rgb, 1);
+  }
+</script>
+
+
+<script id="stat-vertex" type="x-shader/x-vertex">
+  attribute highp vec2 aTextureCoord;
+  
+  uniform highp vec4 uVertexPosition;
+    
+  varying highp vec2 vTextureCoord;
+  
+  void main(void) {
+    gl_Position = uVertexPosition;
+    gl_PointSize = 1.0;
+    vTextureCoord = aTextureCoord;
+  }
+</script>
+
+<script id="stat-fragment" type="x-shader/x-fragment">
+  varying highp vec2 vTextureCoord;
+  
+  uniform sampler2D uSampler;
+  uniform highp vec4 uChannelIndex;
+
+  void main(void) {
+    highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
+    
+    highp float channelValue = dot(uChannelIndex, vec4(texelColor.rgb, 1));
+    gl_FragColor = channelValue * vec4(texelColor.rgb, 1);
+  }
+</script>
+
+</body>
+</html>

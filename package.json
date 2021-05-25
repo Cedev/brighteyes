@@ -1,0 +1,37 @@
+{
+  "name": "brighteyes",
+  "version": "0.0.1",
+  "description": "Spot details through your camera using principal components analysis and decorrelation stretch",
+  "main": "index.js",
+  "scripts": {
+    "build": "browserify index.js -o dist/bundle.js",
+    "watch": "watchify index.js -o dist/bundle.js -v",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Cedric Shock",
+  "license": "MIT",
+  "dependencies": {
+    "gl-matrix": "^3.3.0",
+    "ml-matrix": "^6.8.0",
+    "twgl.js": "^4.19.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.3",
+    "@babel/preset-env": "^7.14.2",
+    "babelify": "^10.0.0",
+    "browserify": "^17.0.0",
+    "watchify": "^4.0.0"
+  },
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "@babel/preset-env"
+          ]
+        }
+      ]
+    ]
+  }
+}
