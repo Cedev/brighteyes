@@ -4,425 +4,6 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Camera = void 0;
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-function videoCamera() {
-  var camera = document.createElement("video");
-  camera.setAttribute("playsInline", "");
-  camera.setAttribute("autoPlay", "");
-  camera.setAttribute("style", "display: none");
-  return camera;
-}
-
-var Camera = /*#__PURE__*/function () {
-  function Camera() {
-    _classCallCheck(this, Camera);
-
-    this.onError = console.log;
-    this.container = document.body.appendChild(document.createElement("div"));
-    this.current = null;
-    this.currentData = false;
-    this.changing = false;
-    this.nextConstraints = null;
-    this.callbacks = [];
-  }
-
-  _createClass(Camera, [{
-    key: "requestVideoFrameCallback",
-    value: function requestVideoFrameCallback(callback) {
-      this.callbacks.push(callback);
-    }
-  }, {
-    key: "videoFrameCallback",
-    value: function videoFrameCallback(now, frame) {
-      this.currentData = true;
-      var callbacks = this.callbacks;
-      this.callbacks = [];
-      callbacks.forEach(function (c) {
-        return c(now, frame);
-      });
-      this.watch();
-    }
-  }, {
-    key: "watch",
-    value: function watch() {
-      var _this = this;
-
-      if (this.current) {
-        this.current.requestVideoFrameCallback(function (n, f) {
-          return _this.videoFrameCallback(n, f);
-        });
-      }
-    }
-  }, {
-    key: "change",
-    value: function change(constraints) {
-      this.nextConstraints = constraints;
-
-      if (!this.changing) {
-        this.startChange();
-      }
-    }
-  }, {
-    key: "startChange",
-    value: function startChange() {
-      var _this2 = this;
-
-      this.changing = true;
-      var constraints = this.nextConstraints;
-      this.nextConstraints = null;
-      navigator.mediaDevices.getUserMedia(constraints).then(function (s) {
-        return _this2.setStream(s);
-      })["catch"](this.onError).then(function () {
-        _this2.changing = false;
-
-        if (_this2.nextConstraints) {
-          _this2.startChange();
-        }
-      });
-    }
-  }, {
-    key: "setStream",
-    value: function setStream(stream) {
-      // changing the srcObject on a video element doesn't work
-      this.currentData = false;
-
-      if (this.current) {
-        this.current.srcObject.getTracks().forEach(function (track) {
-          return track.stop();
-        });
-        this.current.srcObject = null;
-      }
-
-      this.current = null;
-
-      while (this.container.firstChild) {
-        this.container.removeChild(this.container.firstChild);
-      }
-
-      var camera = videoCamera();
-      this.container.appendChild(camera);
-
-      camera.onloadedmetadata = function (e) {
-        console.log([camera.videoWidth, camera.videoHeight, "Camera"]);
-      };
-
-      camera.srcObject = stream;
-      this.current = camera;
-      this.watch();
-    }
-  }, {
-    key: "capture",
-    value: function capture(gl, texture) {
-      if (this.currentData) {
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.current);
-      }
-    }
-  }]);
-
-  return Camera;
-}();
-
-exports.Camera = Camera;
-
-},{}],2:[function(require,module,exports){
-"use strict";
-
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-var twgl = _interopRequireWildcard(require("twgl.js"));
-
-var _glMatrix = require("gl-matrix");
-
-var _la = require("./la.js");
-
-var _camera = require("./camera.js");
-
-var _stat_sampler = require("./stat_sampler.js");
-
-var _screen = require("./screen.js");
-
-var _prelude = require("./prelude.js");
-
-function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
-
-function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
-
-var nsamples = 1000;
-var camera = new _camera.Camera();
-var canvas = document.getElementById('screen');
-var errors = document.getElementById('errors');
-
-function reportError(err) {
-  console.log(err);
-  var div = document.createElement('div');
-  var text = document.createTextNode(err);
-  div.appendChild(text);
-  errors.appendChild(div);
-}
-
-camera.onError = reportError;
-canvas.addEventListener("click", function (_) {
-  mode = (mode + 1) % modes.length;
-});
-
-function sumsToCov(s) {
-  // Convert a 4x4 matrix containing the outer product of sampled pixels with themselves
-  // into a covariance matrix
-  var n = s(3, 3);
-
-  var e = function e(i, j) {
-    return (s(i, j) - s(i, 3) * s(3, j) / n) / (n - 1);
-  };
-
-  return (0, _la.matrixFrom)(3, 3, e);
-}
-
-var negative = _glMatrix.mat4.fromValues(-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 1, 1, 1, 1);
-
-var mode = 0;
-var modes = [{
-  decor: {}
-}, {
-  decor: {
-    corr: true
-  }
-}, {}, {
-  post: negative
-}, {
-  decor: {},
-  post: negative
-}];
-
-var colorTransformation = _glMatrix.mat4.create();
-
-function makeRender() {
-  var gl = canvas.getContext('webgl2');
-  twgl.addExtensionsToContext(gl);
-  console.log([gl.drawingBufferWidth, gl.drawingBufferHeight, "Drawing Buffer"]);
-  var texture = twgl.createTexture(gl, {
-    mag: gl.LINEAR,
-    min: gl.LINEAR,
-    src: [0, 0, 255, 255]
-  });
-  var statSampler = new _stat_sampler.StatSampler(gl, nsamples);
-  var screen = new _screen.Screen(gl);
-
-  function render(now, frame) {
-    if (frame) {
-      camera.capture(gl, texture);
-      var pixels = statSampler.sample(texture);
-
-      var sums = function sums(i, j) {
-        return pixels[i * 4 + j];
-      };
-
-      var cov = sumsToCov(sums);
-
-      var means = _glMatrix.vec3.fromValues(sums(0, 3) / sums(3, 3), sums(1, 3) / sums(3, 3), sums(2, 3) / sums(3, 3));
-
-      var t = _glMatrix.mat4.create();
-
-      if (modes[mode].decor) {
-        t = (0, _la.decorStretcher)(cov, means, modes[mode].decor);
-      }
-
-      if (modes[mode].post) {
-        _glMatrix.mat4.multiply(t, modes[mode].post, t);
-      }
-
-      colorTransformation = t;
-    } else {
-      frame = {
-        width: gl.canvas.width,
-        height: gl.canvas.height
-      };
-    }
-
-    screen.display(colorTransformation, texture, frame.width, frame.height);
-    camera.requestVideoFrameCallback(render);
-  }
-
-  return render;
-}
-
-function requestStream() {
-  console.log([window.innerWidth, window.innerHeight, "Window"]); // Needed despite css to get the canvas to render at a high resolution
-
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight; // ask for the wrong thing for portrait because the phone always gives you the wrong thing
-
-  var portrait = screen.orientation.type.startsWith('portrait');
-  var constraints = {
-    audio: false,
-    video: {
-      width: {
-        ideal: portrait ? window.innerHeight : window.innerWidth
-      },
-      height: {
-        ideal: portrait ? window.innerWidth : window.innerHeight
-      },
-      facingMode: {
-        ideal: 'environment'
-      }
-    }
-  };
-  camera.change(constraints);
-}
-
-requestStream();
-var render = makeRender();
-requestAnimationFrame(function (now) {
-  return render(now, null);
-});
-window.addEventListener('resize', requestStream);
-
-},{"./camera.js":1,"./la.js":3,"./prelude.js":21,"./screen.js":22,"./stat_sampler.js":23,"gl-matrix":5,"twgl.js":20}],3:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.mat4From = mat4From;
-exports.mat4FromMatrix = mat4FromMatrix;
-exports.mat4ToMatrix = mat4ToMatrix;
-exports.matrixFrom = matrixFrom;
-exports.matrixFromDiag = matrixFromDiag;
-exports.mapDiagonal = mapDiagonal;
-exports.mapMatrix = mapMatrix;
-exports.decorStretcher = decorStretcher;
-
-var _glMatrix = require("gl-matrix");
-
-var _mlMatrix = require("ml-matrix");
-
-var _prelude = require("./prelude.js");
-
-// create and convert and map gl-matrix mat4 and ml-matrix Matrix
-function mat4From(f) {
-  // create a mat4 from a function
-  return _glMatrix.mat4.fromValues(f(0, 0), f(1, 0), f(2, 0), f(3, 0), f(0, 1), f(1, 1), f(2, 1), f(3, 1), f(0, 2), f(1, 2), f(2, 2), f(3, 2), f(0, 3), f(1, 3), f(2, 3), f(3, 3));
-}
-
-function mat4FromMatrix(m) {
-  // create a mat4 matrix, filling with 1 on the diagonal and 0 elsewhere
-  return mat4From(function (r, c) {
-    return r < m.rows && c < m.columns ? m.get(r, c) : r == c ? 1 : 0;
-  });
-}
-
-function mat4ToMatrix(m) {
-  // convert a gl-matrix mat4 to an ml-matrix Matrix
-  return matrixFrom(4, 4, function (r, c) {
-    return m[c * 4 + r];
-  });
-}
-
-function matrixFrom(nRows, nCols, f) {
-  return new _mlMatrix.Matrix((0, _prelude.range)(nRows).map(function (r) {
-    return (0, _prelude.range)(nCols).map(function (c) {
-      return f(r, c);
-    });
-  }));
-}
-
-function matrixFromDiag(n, f) {
-  return matrixFrom(n, n, function (r, c) {
-    return r == c ? f(r) : 0;
-  });
-}
-
-function mapDiagonal(m, f) {
-  return matrixFrom(m.rows, m.columns, function (r, c) {
-    return r == c ? f(m.get(r, c)) : 0;
-  });
-}
-
-function mapMatrix(m, f) {
-  return matrixFrom(m.rows, m.columns, function (r, c) {
-    return f(m.get(r, c));
-  });
-}
-
-function fopt(f) {
-  var _f;
-
-  // Apply a function if it's a function, otherwise use constant function
-  f = (_f = f) !== null && _f !== void 0 ? _f : function (x) {
-    return x;
-  };
-
-  if (!f instanceof Function) {
-    return function (_) {
-      return f;
-    };
-  }
-
-  return f;
-}
-
-function decorStretcher(cov, means, options) {
-  var _options$corr;
-
-  // Takes a 3x3 covariance Matrix and a vec3 of means
-  // Returns a 4x4 mat4 that performs decorrelation stretch on 3 dimensional vectors augmented with a 1 bias dimension
-  var useCorr = (_options$corr = options.corr) !== null && _options$corr !== void 0 ? _options$corr : false;
-  var sigma = mapDiagonal(cov, Math.sqrt);
-  var isigma = mapDiagonal(sigma, function (x) {
-    return 1 / x;
-  }); // isigma = inverse(sigma);
-
-  var cor = cov;
-
-  if (useCorr) {
-    var cor = isigma.mmul(cov).mmul(isigma);
-  }
-
-  var evDecomp = new _mlMatrix.EigenvalueDecomposition(cor);
-  var scale = mapDiagonal(evDecomp.diagonalMatrix, function (x) {
-    return 1 / Math.sqrt(x);
-  });
-  var sigmaOut = fopt(options.sigma)(sigma);
-  var t = sigmaOut.mmul(evDecomp.eigenvectorMatrix).mmul(scale).mmul(evDecomp.eigenvectorMatrix.transpose());
-
-  if (useCorr) {
-    t = t.mmul(isigma);
-  }
-
-  var mat4t = mat4FromMatrix(t);
-  var negMeans = means.map(function (x) {
-    return x * -1;
-  });
-  var addMeans = fopt(options.mean)(means);
-
-  var subMean = _glMatrix.mat4.create();
-
-  _glMatrix.mat4.fromTranslation(subMean, negMeans);
-
-  var addMean = _glMatrix.mat4.create();
-
-  _glMatrix.mat4.fromTranslation(addMean, addMeans);
-
-  _glMatrix.mat4.multiply(mat4t, mat4t, subMean);
-
-  _glMatrix.mat4.multiply(mat4t, addMean, mat4t);
-
-  return mat4t;
-}
-
-},{"./prelude.js":21,"gl-matrix":5,"ml-matrix":19}],4:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 exports.setMatrixArrayType = setMatrixArrayType;
 exports.toRadian = toRadian;
 exports.equals = equals;
@@ -485,7 +66,7 @@ if (!Math.hypot) Math.hypot = function () {
 
   return Math.sqrt(y);
 };
-},{}],5:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -538,7 +119,7 @@ exports.vec4 = vec4;
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
-},{"./common.js":4,"./mat2.js":6,"./mat2d.js":7,"./mat3.js":8,"./mat4.js":9,"./quat.js":10,"./quat2.js":11,"./vec2.js":12,"./vec3.js":13,"./vec4.js":14}],6:[function(require,module,exports){
+},{"./common.js":1,"./mat2.js":3,"./mat2d.js":4,"./mat3.js":5,"./mat4.js":6,"./quat.js":7,"./quat2.js":8,"./vec2.js":9,"./vec3.js":10,"./vec4.js":11}],3:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -1034,7 +615,7 @@ var mul = multiply;
 exports.mul = mul;
 var sub = subtract;
 exports.sub = sub;
-},{"./common.js":4}],7:[function(require,module,exports){
+},{"./common.js":1}],4:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -1582,7 +1163,7 @@ var mul = multiply;
 exports.mul = mul;
 var sub = subtract;
 exports.sub = sub;
-},{"./common.js":4}],8:[function(require,module,exports){
+},{"./common.js":1}],5:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -2436,7 +2017,7 @@ var mul = multiply;
 exports.mul = mul;
 var sub = subtract;
 exports.sub = sub;
-},{"./common.js":4}],9:[function(require,module,exports){
+},{"./common.js":1}],6:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -4356,7 +3937,7 @@ var mul = multiply;
 exports.mul = mul;
 var sub = subtract;
 exports.sub = sub;
-},{"./common.js":4}],10:[function(require,module,exports){
+},{"./common.js":1}],7:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -5148,7 +4729,7 @@ var setAxes = function () {
 }();
 
 exports.setAxes = setAxes;
-},{"./common.js":4,"./mat3.js":8,"./vec3.js":13,"./vec4.js":14}],11:[function(require,module,exports){
+},{"./common.js":1,"./mat3.js":5,"./vec3.js":10,"./vec4.js":11}],8:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -6073,7 +5654,7 @@ function equals(a, b) {
       b7 = b[7];
   return Math.abs(a0 - b0) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a0), Math.abs(b0)) && Math.abs(a1 - b1) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a1), Math.abs(b1)) && Math.abs(a2 - b2) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a2), Math.abs(b2)) && Math.abs(a3 - b3) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a3), Math.abs(b3)) && Math.abs(a4 - b4) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a4), Math.abs(b4)) && Math.abs(a5 - b5) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a5), Math.abs(b5)) && Math.abs(a6 - b6) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a6), Math.abs(b6)) && Math.abs(a7 - b7) <= glMatrix.EPSILON * Math.max(1.0, Math.abs(a7), Math.abs(b7));
 }
-},{"./common.js":4,"./mat4.js":9,"./quat.js":10}],12:[function(require,module,exports){
+},{"./common.js":1,"./mat4.js":6,"./quat.js":7}],9:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -6795,7 +6376,7 @@ var forEach = function () {
 }();
 
 exports.forEach = forEach;
-},{"./common.js":4}],13:[function(require,module,exports){
+},{"./common.js":1}],10:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -7686,7 +7267,7 @@ var forEach = function () {
 }();
 
 exports.forEach = forEach;
-},{"./common.js":4}],14:[function(require,module,exports){
+},{"./common.js":1}],11:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -8439,7 +8020,7 @@ var forEach = function () {
 }();
 
 exports.forEach = forEach;
-},{"./common.js":4}],15:[function(require,module,exports){
+},{"./common.js":1}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -8452,7 +8033,7 @@ function isAnyArray(object) {
 
 exports.default = isAnyArray;
 
-},{}],16:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 var isArray = require('is-any-array');
@@ -8499,7 +8080,7 @@ function max(input, options = {}) {
 
 module.exports = max;
 
-},{"is-any-array":15}],17:[function(require,module,exports){
+},{"is-any-array":12}],14:[function(require,module,exports){
 'use strict';
 
 var isArray = require('is-any-array');
@@ -8546,7 +8127,7 @@ function min(input, options = {}) {
 
 module.exports = min;
 
-},{"is-any-array":15}],18:[function(require,module,exports){
+},{"is-any-array":12}],15:[function(require,module,exports){
 'use strict';
 
 var isArray = require('is-any-array');
@@ -8604,7 +8185,7 @@ function rescale(input, options = {}) {
 
 module.exports = rescale;
 
-},{"is-any-array":15,"ml-array-max":16,"ml-array-min":17}],19:[function(require,module,exports){
+},{"is-any-array":12,"ml-array-max":13,"ml-array-min":14}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -13704,7 +13285,7 @@ exports.pseudoInverse = pseudoInverse;
 exports.solve = solve;
 exports.wrap = wrap;
 
-},{"ml-array-rescale":18}],20:[function(require,module,exports){
+},{"ml-array-rescale":15}],17:[function(require,module,exports){
 /*!
  * @license twgl.js 4.19.1 Copyright (c) 2015, Gregg Tavares All Rights Reserved.
  * Available via the MIT license.
@@ -24300,7 +23881,426 @@ function createVAOFromBufferInfo(gl, programInfo, bufferInfo) {
 /******/ });
 });
 
-},{}],21:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Camera = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function videoCamera() {
+  var camera = document.createElement("video");
+  camera.setAttribute("playsInline", "");
+  camera.setAttribute("autoPlay", "");
+  camera.setAttribute("style", "display: none");
+  return camera;
+}
+
+var Camera = /*#__PURE__*/function () {
+  function Camera() {
+    _classCallCheck(this, Camera);
+
+    this.onError = console.log;
+    this.container = document.body.appendChild(document.createElement("div"));
+    this.current = null;
+    this.currentData = false;
+    this.changing = false;
+    this.nextConstraints = null;
+    this.callbacks = [];
+  }
+
+  _createClass(Camera, [{
+    key: "requestVideoFrameCallback",
+    value: function requestVideoFrameCallback(callback) {
+      this.callbacks.push(callback);
+    }
+  }, {
+    key: "videoFrameCallback",
+    value: function videoFrameCallback(now, frame) {
+      this.currentData = true;
+      var callbacks = this.callbacks;
+      this.callbacks = [];
+      callbacks.forEach(function (c) {
+        return c(now, frame);
+      });
+      this.watch();
+    }
+  }, {
+    key: "watch",
+    value: function watch() {
+      var _this = this;
+
+      if (this.current) {
+        this.current.requestVideoFrameCallback(function (n, f) {
+          return _this.videoFrameCallback(n, f);
+        });
+      }
+    }
+  }, {
+    key: "change",
+    value: function change(constraints) {
+      this.nextConstraints = constraints;
+
+      if (!this.changing) {
+        this.startChange();
+      }
+    }
+  }, {
+    key: "startChange",
+    value: function startChange() {
+      var _this2 = this;
+
+      this.changing = true;
+      var constraints = this.nextConstraints;
+      this.nextConstraints = null;
+      navigator.mediaDevices.getUserMedia(constraints).then(function (s) {
+        return _this2.setStream(s);
+      })["catch"](this.onError).then(function () {
+        _this2.changing = false;
+
+        if (_this2.nextConstraints) {
+          _this2.startChange();
+        }
+      });
+    }
+  }, {
+    key: "setStream",
+    value: function setStream(stream) {
+      // changing the srcObject on a video element doesn't work
+      this.currentData = false;
+
+      if (this.current) {
+        this.current.srcObject.getTracks().forEach(function (track) {
+          return track.stop();
+        });
+        this.current.srcObject = null;
+      }
+
+      this.current = null;
+
+      while (this.container.firstChild) {
+        this.container.removeChild(this.container.firstChild);
+      }
+
+      var camera = videoCamera();
+      this.container.appendChild(camera);
+
+      camera.onloadedmetadata = function (e) {
+        console.log([camera.videoWidth, camera.videoHeight, "Camera"]);
+      };
+
+      camera.srcObject = stream;
+      this.current = camera;
+      this.watch();
+    }
+  }, {
+    key: "capture",
+    value: function capture(gl, texture) {
+      if (this.currentData) {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.current);
+      }
+    }
+  }]);
+
+  return Camera;
+}();
+
+exports.Camera = Camera;
+
+},{}],19:[function(require,module,exports){
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+var twgl = _interopRequireWildcard(require("twgl.js"));
+
+var _glMatrix = require("gl-matrix");
+
+var _la = require("./la.js");
+
+var _camera = require("./camera.js");
+
+var _stat_sampler = require("./stat_sampler.js");
+
+var _screen = require("./screen.js");
+
+var _prelude = require("./prelude.js");
+
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+var nsamples = 1000;
+var camera = new _camera.Camera();
+var canvas = document.getElementById('screen');
+var errors = document.getElementById('errors');
+
+function reportError(err) {
+  console.log(err);
+  var div = document.createElement('div');
+  var text = document.createTextNode(err);
+  div.appendChild(text);
+  errors.appendChild(div);
+}
+
+camera.onError = reportError;
+canvas.addEventListener("click", function (_) {
+  mode = (mode + 1) % modes.length;
+});
+
+function sumsToCov(s) {
+  // Convert a 4x4 matrix containing the outer product of sampled pixels with themselves
+  // into a covariance matrix
+  var n = s(3, 3);
+
+  var e = function e(i, j) {
+    return (s(i, j) - s(i, 3) * s(3, j) / n) / (n - 1);
+  };
+
+  return (0, _la.matrixFrom)(3, 3, e);
+}
+
+var negative = _glMatrix.mat4.fromValues(-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 1, 1, 1, 1);
+
+var mode = 0;
+var modes = [{
+  decor: {}
+}, {
+  decor: {
+    corr: true
+  }
+}, {}, {
+  post: negative
+}, {
+  decor: {},
+  post: negative
+}];
+
+var colorTransformation = _glMatrix.mat4.create();
+
+function makeRender() {
+  var gl = canvas.getContext('webgl2');
+  twgl.addExtensionsToContext(gl);
+  console.log([gl.drawingBufferWidth, gl.drawingBufferHeight, "Drawing Buffer"]);
+  var texture = twgl.createTexture(gl, {
+    mag: gl.LINEAR,
+    min: gl.LINEAR,
+    src: [0, 0, 255, 255]
+  });
+  var statSampler = new _stat_sampler.StatSampler(gl, nsamples);
+  var screen = new _screen.Screen(gl);
+
+  function render(now, frame) {
+    if (frame) {
+      camera.capture(gl, texture);
+      var pixels = statSampler.sample(texture);
+
+      var sums = function sums(i, j) {
+        return pixels[i * 4 + j];
+      };
+
+      var cov = sumsToCov(sums);
+
+      var means = _glMatrix.vec3.fromValues(sums(0, 3) / sums(3, 3), sums(1, 3) / sums(3, 3), sums(2, 3) / sums(3, 3));
+
+      var t = _glMatrix.mat4.create();
+
+      if (modes[mode].decor) {
+        t = (0, _la.decorStretcher)(cov, means, modes[mode].decor);
+      }
+
+      if (modes[mode].post) {
+        _glMatrix.mat4.multiply(t, modes[mode].post, t);
+      }
+
+      colorTransformation = t;
+    } else {
+      frame = {
+        width: gl.canvas.width,
+        height: gl.canvas.height
+      };
+    }
+
+    screen.display(colorTransformation, texture, frame.width, frame.height);
+    camera.requestVideoFrameCallback(render);
+  }
+
+  return render;
+}
+
+function requestStream() {
+  console.log([window.innerWidth, window.innerHeight, "Window"]); // Needed despite css to get the canvas to render at a high resolution
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight; // ask for the wrong thing for portrait because the phone always gives you the wrong thing
+
+  var portrait = screen.orientation.type.startsWith('portrait');
+  var constraints = {
+    audio: false,
+    video: {
+      width: {
+        ideal: portrait ? window.innerHeight : window.innerWidth
+      },
+      height: {
+        ideal: portrait ? window.innerWidth : window.innerHeight
+      },
+      facingMode: {
+        ideal: 'environment'
+      }
+    }
+  };
+  camera.change(constraints);
+}
+
+requestStream();
+var render = makeRender();
+requestAnimationFrame(function (now) {
+  return render(now, null);
+});
+window.addEventListener('resize', requestStream);
+
+},{"./camera.js":18,"./la.js":20,"./prelude.js":21,"./screen.js":22,"./stat_sampler.js":23,"gl-matrix":2,"twgl.js":17}],20:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.mat4From = mat4From;
+exports.mat4FromMatrix = mat4FromMatrix;
+exports.mat4ToMatrix = mat4ToMatrix;
+exports.matrixFrom = matrixFrom;
+exports.matrixFromDiag = matrixFromDiag;
+exports.mapDiagonal = mapDiagonal;
+exports.mapMatrix = mapMatrix;
+exports.decorStretcher = decorStretcher;
+
+var _glMatrix = require("gl-matrix");
+
+var _mlMatrix = require("ml-matrix");
+
+var _prelude = require("./prelude.js");
+
+// create and convert and map gl-matrix mat4 and ml-matrix Matrix
+function mat4From(f) {
+  // create a mat4 from a function
+  return _glMatrix.mat4.fromValues(f(0, 0), f(1, 0), f(2, 0), f(3, 0), f(0, 1), f(1, 1), f(2, 1), f(3, 1), f(0, 2), f(1, 2), f(2, 2), f(3, 2), f(0, 3), f(1, 3), f(2, 3), f(3, 3));
+}
+
+function mat4FromMatrix(m) {
+  // create a mat4 matrix, filling with 1 on the diagonal and 0 elsewhere
+  return mat4From(function (r, c) {
+    return r < m.rows && c < m.columns ? m.get(r, c) : r == c ? 1 : 0;
+  });
+}
+
+function mat4ToMatrix(m) {
+  // convert a gl-matrix mat4 to an ml-matrix Matrix
+  return matrixFrom(4, 4, function (r, c) {
+    return m[c * 4 + r];
+  });
+}
+
+function matrixFrom(nRows, nCols, f) {
+  return new _mlMatrix.Matrix((0, _prelude.range)(nRows).map(function (r) {
+    return (0, _prelude.range)(nCols).map(function (c) {
+      return f(r, c);
+    });
+  }));
+}
+
+function matrixFromDiag(n, f) {
+  return matrixFrom(n, n, function (r, c) {
+    return r == c ? f(r) : 0;
+  });
+}
+
+function mapDiagonal(m, f) {
+  return matrixFrom(m.rows, m.columns, function (r, c) {
+    return r == c ? f(m.get(r, c)) : 0;
+  });
+}
+
+function mapMatrix(m, f) {
+  return matrixFrom(m.rows, m.columns, function (r, c) {
+    return f(m.get(r, c));
+  });
+}
+
+function fopt(f) {
+  var _f;
+
+  // Apply a function if it's a function, otherwise use constant function
+  f = (_f = f) !== null && _f !== void 0 ? _f : function (x) {
+    return x;
+  };
+
+  if (!f instanceof Function) {
+    return function (_) {
+      return f;
+    };
+  }
+
+  return f;
+}
+
+function decorStretcher(cov, means, options) {
+  var _options$corr;
+
+  // Takes a 3x3 covariance Matrix and a vec3 of means
+  // Returns a 4x4 mat4 that performs decorrelation stretch on 3 dimensional vectors augmented with a 1 bias dimension
+  var useCorr = (_options$corr = options.corr) !== null && _options$corr !== void 0 ? _options$corr : false;
+  var sigma = mapDiagonal(cov, Math.sqrt);
+  var isigma = mapDiagonal(sigma, function (x) {
+    return 1 / x;
+  }); // isigma = inverse(sigma);
+
+  var cor = cov;
+
+  if (useCorr) {
+    var cor = isigma.mmul(cov).mmul(isigma);
+  }
+
+  var evDecomp = new _mlMatrix.EigenvalueDecomposition(cor);
+  var scale = mapDiagonal(evDecomp.diagonalMatrix, function (x) {
+    return 1 / Math.sqrt(x);
+  });
+  var sigmaOut = fopt(options.sigma)(sigma);
+  var t = sigmaOut.mmul(evDecomp.eigenvectorMatrix).mmul(scale).mmul(evDecomp.eigenvectorMatrix.transpose());
+
+  if (useCorr) {
+    t = t.mmul(isigma);
+  }
+
+  var mat4t = mat4FromMatrix(t);
+  var negMeans = means.map(function (x) {
+    return x * -1;
+  });
+  var addMeans = fopt(options.mean)(means);
+
+  var subMean = _glMatrix.mat4.create();
+
+  _glMatrix.mat4.fromTranslation(subMean, negMeans);
+
+  var addMean = _glMatrix.mat4.create();
+
+  _glMatrix.mat4.fromTranslation(addMean, addMeans);
+
+  _glMatrix.mat4.multiply(mat4t, mat4t, subMean);
+
+  _glMatrix.mat4.multiply(mat4t, addMean, mat4t);
+
+  return mat4t;
+}
+
+},{"./prelude.js":21,"gl-matrix":2,"ml-matrix":16}],21:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24400,7 +24400,7 @@ var Screen = /*#__PURE__*/function () {
 
 exports.Screen = Screen;
 
-},{"gl-matrix":5,"twgl.js":20}],23:[function(require,module,exports){
+},{"gl-matrix":2,"twgl.js":17}],23:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -24499,4 +24499,4 @@ var StatSampler = /*#__PURE__*/function () {
 
 exports.StatSampler = StatSampler;
 
-},{"./prelude.js":21,"twgl.js":20}]},{},[2]);
+},{"./prelude.js":21,"twgl.js":17}]},{},[19]);

@@ -40,13 +40,13 @@ android {
 }
 
 task copyAssets(type: Copy) {
-    from file("${rootDir}/../index.html")
+    from file("${rootDir}/../web/index.html")
     into file("${rootDir}/app/src/main/assets/")
 }
 
 task copyAssetsDist(type: Copy) {
-    from file("${rootDir}/../dist/bundle.js")
-    into file("${rootDir}/app/src/main/assets/dist/")
+    from file("${rootDir}/../web/lib/bundle.js")
+    into file("${rootDir}/app/src/main/assets/lib/")
 }
 
 preBuild.dependsOn copyAssets

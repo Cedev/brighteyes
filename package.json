@@ -4,8 +4,8 @@
   "description": "Spot details through your camera using principal components analysis and decorrelation stretch",
   "main": "index.js",
   "scripts": {
-    "build": "browserify index.js -o dist/bundle.js",
-    "watch": "watchify index.js -o dist/bundle.js -v",
+    "build": "browserify web/index.js -o web/lib/bundle.js",
+    "watch": "watchify web/index.js -o web/lib/bundle.js -v",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Cedric Shock",
