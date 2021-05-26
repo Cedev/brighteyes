@@ -1,19 +1,20 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-
 function videoCamera() {
-  return <video playsInline autoPlay style={{display: 'none'}}></video>
+  var camera = document.createElement("video");
+  camera.setAttribute("playsInline", "");
+  camera.setAttribute("autoPlay", "");
+  camera.setAttribute("style", "display: none");
+  return camera;
 }
 
 export class Camera {
 
   constructor() {
     this.container = document.body.appendChild(document.createElement("div"));
-    this.current = undefined;
+    this.current = null;
     this.currentData = false;
 
     this.changing = false;
-    this.nextConstraints = undefined;
+    this.nextConstraints = null;
 
     this.callbacks = [];
   }
@@ -46,7 +47,7 @@ export class Camera {
   startChange() {
     this.changing = true;
     const constraints = this.nextConstraints;
-    this.nextConstraints = undefined;
+    this.nextConstraints = null;
 
     navigator.mediaDevices.getUserMedia(constraints).then(s => this.setStream(s)).catch(console.log).then(() => {
       this.changing = false;
@@ -63,9 +64,12 @@ export class Camera {
       this.current.srcObject.getTracks().forEach(track => track.stop());
       this.current.srcObject = null;
     }
-    ReactDOM.unmountComponentAtNode(this.container);
-    const cam = videoCamera();
-    const camera = ReactDOM.render(cam, this.container);
+    this.current = null;
+    while (this.container.firstChild) {
+      this.container.removeChild(this.container.firstChild);
+    }
+    const camera = videoCamera();
+    this.container.appendChild(camera);
     
     camera.onloadedmetadata = e => {
       console.log([camera.videoWidth, camera.videoHeight, "Camera"]);
