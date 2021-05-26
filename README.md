@@ -4,7 +4,7 @@
 
 Spot details through your camera using principal components analysis and decorrelation stretch.
 
-[Online version)(https://cedev.github.io/brighteyes/)
+[Online version](https://cedev.github.io/brighteyes/)
 
 There are 5 modes, which are switched between by tapping the screen:
 
