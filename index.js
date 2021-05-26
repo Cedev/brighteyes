@@ -11,8 +11,21 @@ import { range } from './prelude.js'
 
 const nsamples = 1000;
 
+
 const camera = new Camera();
 const canvas = document.getElementById('screen');
+const errors = document.getElementById('errors');
+
+function reportError(err) {
+  console.log(err);
+
+  var div = document.createElement('div');
+  var text = document.createTextNode(err);
+  div.appendChild(text);
+  errors.appendChild(div);
+}
+
+camera.onError = reportError;
 
 canvas.addEventListener(
   "click",

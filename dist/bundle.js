@@ -24,6 +24,7 @@ var Camera = /*#__PURE__*/function () {
   function Camera() {
     _classCallCheck(this, Camera);
 
+    this.onError = console.log;
     this.container = document.body.appendChild(document.createElement("div"));
     this.current = null;
     this.currentData = false;
@@ -78,7 +79,7 @@ var Camera = /*#__PURE__*/function () {
       this.nextConstraints = null;
       navigator.mediaDevices.getUserMedia(constraints).then(function (s) {
         return _this2.setStream(s);
-      })["catch"](console.log).then(function () {
+      })["catch"](this.onError).then(function () {
         _this2.changing = false;
 
         if (_this2.nextConstraints) {
@@ -157,6 +158,17 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 var nsamples = 1000;
 var camera = new _camera.Camera();
 var canvas = document.getElementById('screen');
+var errors = document.getElementById('errors');
+
+function reportError(err) {
+  console.log(err);
+  var div = document.createElement('div');
+  var text = document.createTextNode(err);
+  div.appendChild(text);
+  errors.appendChild(div);
+}
+
+camera.onError = reportError;
 canvas.addEventListener("click", function (_) {
   mode = (mode + 1) % modes.length;
 });

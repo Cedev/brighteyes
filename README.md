@@ -31,3 +31,9 @@ Run `npm install` in the root directory to install all dependencies.
 Run `npm run watch` to build and update the javascript bundle.
 
 Open `index.html` in a browser.
+
+## Andriod
+
+Install [android studio](https://developer.android.com/studio/index.html).
+
+Run `npm run watch` to build and update the javascript bundle.

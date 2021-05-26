@@ -9,6 +9,8 @@ function videoCamera() {
 export class Camera {
 
   constructor() {
+    this.onError = console.log;
+
     this.container = document.body.appendChild(document.createElement("div"));
     this.current = null;
     this.currentData = false;
@@ -49,7 +51,7 @@ export class Camera {
     const constraints = this.nextConstraints;
     this.nextConstraints = null;
 
-    navigator.mediaDevices.getUserMedia(constraints).then(s => this.setStream(s)).catch(console.log).then(() => {
+    navigator.mediaDevices.getUserMedia(constraints).then(s => this.setStream(s)).catch(this.onError).then(() => {
       this.changing = false;
       if (this.nextConstraints) {
         this.startChange();
