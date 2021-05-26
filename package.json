@@ -6,7 +6,8 @@
   "scripts": {
     "build": "browserify web/index.js -o web/lib/bundle.js",
     "watch": "watchify web/index.js -o web/lib/bundle.js -v",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish": "cp web/index.html docs/ && cp web/lib/bundle.js docs/lib/"
   },
   "author": "Cedric Shock",
   "license": "MIT",
