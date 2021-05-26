@@ -250,24 +250,20 @@ function requestStream() {
   console.log([window.innerWidth, window.innerHeight, "Window"]); // Needed despite css to get the canvas to render at a high resolution
 
   canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.height = window.innerHeight; // ask for the wrong thing for portrait because the phone always gives you the wrong thing
+
+  var portrait = screen.orientation.type.startsWith('portrait');
   var constraints = {
     audio: false,
     video: {
       width: {
-        ideal: window.innerWidth
+        ideal: portrait ? window.innerHeight : window.innerWidth
       },
       height: {
-        ideal: window.innerHeight
+        ideal: portrait ? window.innerWidth : window.innerHeight
       },
       facingMode: {
         ideal: 'environment'
-      },
-      resizeMode: {
-        ideal: 'none'
-      },
-      aspectRatio: {
-        ideal: window.innerWidth / window.innerHeight
       }
     }
   };

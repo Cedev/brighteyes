@@ -108,14 +108,15 @@ function requestStream() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
+  // ask for the wrong thing for portrait because the phone always gives you the wrong thing
+  const portrait = screen.orientation.type.startsWith('portrait');
+
   const constraints = {
     audio: false,
     video: {
-      width: { ideal: window.innerWidth },
-      height: { ideal: window.innerHeight },
-      facingMode: { ideal: 'environment' },
-      resizeMode: { ideal: 'none' },
-      aspectRatio: { ideal: window.innerWidth/window.innerHeight }
+      width: { ideal: portrait ? window.innerHeight : window.innerWidth },
+      height: { ideal: portrait ? window.innerWidth : window.innerHeight },
+      facingMode: { ideal: 'environment' }
     }
   };
 
