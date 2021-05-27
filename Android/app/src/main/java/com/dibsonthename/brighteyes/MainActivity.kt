@@ -1,22 +1,24 @@
 package com.dibsonthename.brighteyes
 
-import android.app.DownloadManager
+import android.Manifest
 import android.content.ContentResolver
 import android.content.ContentValues
-import android.content.Context
 import android.content.pm.ActivityInfo
-import android.net.Uri
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Base64
 import android.util.Log
 import android.webkit.*
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import java.io.File
-import java.io.IOException
 import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
@@ -110,13 +112,42 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun getPermission(permission: String, then: () -> Unit) {
+        val currentPermission = ContextCompat.checkSelfPermission(
+            getApplicationContext(), permission)
+        if (currentPermission == PackageManager.PERMISSION_GRANTED) {
+            then()
+        }
+        else {
+           val requestPermissionLauncher =
+               (this as ComponentActivity).registerForActivityResult(
+                   ActivityResultContracts.RequestPermission()
+               ) { isGranted: Boolean ->
+                   if (isGranted) {
+                       then()
+                   } else {
+                   }
+               }
+           requestPermissionLauncher.launch(permission)
+        }
+    }
+
     override fun onStart() {
         super.onStart()
 
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
-
         val webView: WebView = findViewById(R.id.webview)
-        Log.d("BrightEyes", "${webView.width},${webView.height},webView");
-        webView.loadUrl("file:///android_asset/index.html");
+        val unencodedHtml =
+            "<html><body>Getting camera permission ...</body></html>";
+        val encodedHtml = Base64.encodeToString(unencodedHtml.toByteArray(), Base64.NO_PADDING)
+        webView.loadData(encodedHtml, "text/html", "base64")
+
+        getPermission(Manifest.permission.CAMERA) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+
+            Log.d("BrightEyes", "${webView.width},${webView.height},webView");
+            webView.loadUrl("file:///android_asset/index.html");
+
+            getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) {}
+        }
     }
 }
