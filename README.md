@@ -6,17 +6,24 @@ Spot details through your camera using principal components analysis and decorre
 
 [Online version](https://cedev.github.io/brighteyes/)
 
-There are 5 modes, which are switched between by tapping the screen:
+There are 4 modes, which are switched between by swiping the screen in any direction:
 
- - decorrelation stretch by covariance matrix
- - decorrelation stretch by correlation matrix
+ - decorrelation stretch 
  - camera (no processing)
  - camera negative
- - decorrelation stretch of the negative by covariance
+ - decorrelation stretch of the negative
+
+Tapping the screen takes a picture.
+
+### Android app
+
+To install the android app find the latest release on github and download the `.apk` file from the assets.
+
+Grant the app permission to use the camera before running it, or it won't be able to see anything.
 
 ## Math 
 
-All of the decorrelation modes use the input means and input variance as the target mean and variance for the output image.
+All of the decorrelation modes use the input means and input variance as the target mean and variance for the output image, and are stetched using the covariance matrix. Stretching using the correlation matrix is implemented but not used.
 
 The covariance matrix and means are calculated from a sample of 1000 random pixels in each frame.
 

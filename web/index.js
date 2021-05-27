@@ -1,5 +1,6 @@
 import * as twgl  from 'twgl.js';
 import { mat4, vec3 } from 'gl-matrix';
+import Hammer from 'hammerjs';
 import {
   matrixFrom,
   decorStretcher
@@ -15,6 +16,7 @@ const nsamples = 1000;
 const camera = new Camera();
 const canvas = document.getElementById('screen');
 const errors = document.getElementById('errors');
+const downloader = document.getElementById('downloader');
 
 function reportError(err) {
   console.log(err);
@@ -27,12 +29,12 @@ function reportError(err) {
 
 camera.onError = reportError;
 
-canvas.addEventListener(
-  "click",
-  _ => {
-    mode = (mode + 1) % modes.length;
-  }
-)
+function download(canvas, prefix) {
+  downloader.setAttribute('download', prefix + ' ' + new Date().toJSON().replace('T', ' ').replaceAll(':', '.') + '.png');
+  downloader.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
+  downloader.click();
+}
+
 
 function sumsToCov(s) {
   // Convert a 4x4 matrix containing the outer product of sampled pixels with themselves
@@ -54,14 +56,21 @@ var mode = 0;
 const modes = [{
   decor: {}
 }, {
-  decor: {corr: true}
-}, {
 }, {
   post: negative,
 }, {
   decor: {},
   post: negative,
 }];
+
+
+function nextMode() {
+  mode = (mode + 1) % modes.length;
+}
+
+function prevMode() {
+  mode = (mode + modes.length - 1) % modes.length;
+}
 
 var colorTransformation = mat4.create();
 
@@ -141,3 +150,24 @@ const render = makeRender();
 requestAnimationFrame(now => render(now, null));
 
 window.addEventListener('resize', requestStream);
+
+
+
+var mc = new Hammer.Manager(canvas, {
+	recognizers: [
+    [Hammer.Tap],
+    [Hammer.Swipe]
+  ],
+  touchAction: 'pinch-zoom'
+});
+
+mc.on('tap',
+  _ => {
+    render(null, null)
+    download(canvas, 'BrightEyes capture')
+  }
+)
+mc.on('swipeleft', nextMode);
+mc.on('swipeup', nextMode);
+mc.on('swipedown', prevMode);
+mc.on('swiperight', prevMode);
