@@ -137,15 +137,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun displayHtml(html: String) {
+        val webView: WebView = findViewById(R.id.webview)
+        val encodedHtml = Base64.encodeToString(html.toByteArray(), Base64.NO_PADDING)
+        webView.loadData(encodedHtml, "text/html", "base64")
+    }
+
     override fun onStart() {
         super.onStart()
 
-        val webView: WebView = findViewById(R.id.webview)
-        val unencodedHtml = "<html><body>Getting camera permission ...</body></html>"
-        val encodedHtml = Base64.encodeToString(unencodedHtml.toByteArray(), Base64.NO_PADDING)
-        webView.loadData(encodedHtml, "text/html", "base64")
+        displayHtml("<html><body>Getting camera permission ...</body></html>")
 
         getCameraPermission()
+    }
+
+    override fun onStop() {
+        displayHtml("<html><body>Stopped</body></html>")
+
+        super.onStop()
     }
 
     private fun runCamera() {
