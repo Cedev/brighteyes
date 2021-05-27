@@ -1,6 +1,7 @@
 package com.dibsonthename.brighteyes
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.pm.ActivityInfo
@@ -14,11 +15,11 @@ import android.util.Log
 import android.webkit.*
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import java.io.File
 import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
@@ -26,6 +27,9 @@ import java.util.Base64.getDecoder
 
 
 class MainActivity : AppCompatActivity() {
+    private var cameraLauncher: ActivityResultLauncher<String>? = null
+
+    @SuppressLint("SetJavaScriptEnabled")
     @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,7 +72,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         webView.setDownloadListener(object : DownloadListener {
-            @RequiresApi(Build.VERSION_CODES.O)
+            @SuppressLint("SimpleDateFormat")
+            @RequiresApi(Build.VERSION_CODES.Q)
             override fun onDownloadStart(
                 url: String?,
                 userAgent: String?,
@@ -80,26 +85,35 @@ class MainActivity : AppCompatActivity() {
                     val data: ByteArray = getDecoder().decode(url.substring(url.indexOf(",") + 1))
 
                     val timeStamp = SimpleDateFormat("yyyy-MM-dd HH.mm.ss.SSS").format(Date())
-                    val destination = Environment.DIRECTORY_DCIM + File.separator + "BrightEyes"
                     val name = "BrightEyes capture $timeStamp.png"
 
-                    saveImage(data, destination, name, "image/png")
+                    saveImage(data, "DCIM/BrightEyes", name, "image/png")
                 }
             }
-        });
+        })
+
+        cameraLauncher =
+            (this as ComponentActivity).registerForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { isGranted: Boolean ->
+                if (isGranted) {
+                    runCamera()
+                }
+            }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     fun saveImage(data: ByteArray, directory: String, filename: String, mimeType: String) {
-
+        Log.d("BrightEyes","Saving $filename of type $mimeType to $directory")
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
             put(MediaStore.MediaColumns.RELATIVE_PATH, directory)
         }
 
-        val resolver: ContentResolver = getApplicationContext().getContentResolver()
+        val resolver: ContentResolver = applicationContext.contentResolver
 
-        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
         uri?.let { uri ->
             try {
                 resolver.openOutputStream(uri)?.use {
@@ -112,23 +126,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun getPermission(permission: String, then: () -> Unit) {
+    private fun getCameraPermission() {
         val currentPermission = ContextCompat.checkSelfPermission(
-            getApplicationContext(), permission)
+            applicationContext, Manifest.permission.CAMERA)
         if (currentPermission == PackageManager.PERMISSION_GRANTED) {
-            then()
+            runCamera()
         }
         else {
-           val requestPermissionLauncher =
-               (this as ComponentActivity).registerForActivityResult(
-                   ActivityResultContracts.RequestPermission()
-               ) { isGranted: Boolean ->
-                   if (isGranted) {
-                       then()
-                   } else {
-                   }
-               }
-           requestPermissionLauncher.launch(permission)
+            cameraLauncher?.launch(Manifest.permission.CAMERA)
         }
     }
 
@@ -136,18 +141,19 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
 
         val webView: WebView = findViewById(R.id.webview)
-        val unencodedHtml =
-            "<html><body>Getting camera permission ...</body></html>";
+        val unencodedHtml = "<html><body>Getting camera permission ...</body></html>"
         val encodedHtml = Base64.encodeToString(unencodedHtml.toByteArray(), Base64.NO_PADDING)
         webView.loadData(encodedHtml, "text/html", "base64")
 
-        getPermission(Manifest.permission.CAMERA) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+        getCameraPermission()
+    }
 
-            Log.d("BrightEyes", "${webView.width},${webView.height},webView");
-            webView.loadUrl("file:///android_asset/index.html");
+    private fun runCamera() {
+        val webView: WebView = findViewById(R.id.webview)
 
-            getPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) {}
-        }
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_NOSENSOR
+
+        Log.d("BrightEyes", "${webView.width},${webView.height},webView")
+        webView.loadUrl("file:///android_asset/index.html")
     }
 }
