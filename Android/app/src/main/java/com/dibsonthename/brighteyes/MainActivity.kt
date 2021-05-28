@@ -8,7 +8,6 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
@@ -30,7 +29,6 @@ class MainActivity : AppCompatActivity() {
     private var cameraLauncher: ActivityResultLauncher<String>? = null
 
     @SuppressLint("SetJavaScriptEnabled")
-    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -72,8 +70,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         webView.setDownloadListener(object : DownloadListener {
+            @RequiresApi(Build.VERSION_CODES.O)
             @SuppressLint("SimpleDateFormat")
-            @RequiresApi(Build.VERSION_CODES.Q)
             override fun onDownloadStart(
                 url: String?,
                 userAgent: String?,
@@ -99,16 +97,20 @@ class MainActivity : AppCompatActivity() {
                 if (isGranted) {
                     runCamera()
                 }
+                else {
+                    displayHtml("<html><body>Could not get camera permission</body></html>")
+                }
             }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     fun saveImage(data: ByteArray, directory: String, filename: String, mimeType: String) {
         Log.d("BrightEyes","Saving $filename of type $mimeType to $directory")
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-            put(MediaStore.MediaColumns.RELATIVE_PATH, directory)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.MediaColumns.RELATIVE_PATH, directory)
+            }
         }
 
         val resolver: ContentResolver = applicationContext.contentResolver
