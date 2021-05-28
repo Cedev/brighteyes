@@ -13,7 +13,8 @@ export class Camera {
 
     this.container = document.body.appendChild(document.createElement("div"));
     this.current = null;
-    this.currentData = false;
+    this.currentFrame = null;
+    this.mockFrame = null;
 
     this.changing = false;
     this.nextConstraints = null;
@@ -26,7 +27,7 @@ export class Camera {
   }
 
   videoFrameCallback(now, frame) {
-    this.currentData = true;
+    this.currentFrame = frame;
     var callbacks = this.callbacks;
     this.callbacks = [];
     callbacks.forEach(c => c(now, frame));
@@ -35,7 +36,11 @@ export class Camera {
 
   watch() {
     if (this.current) {
-      this.current.requestVideoFrameCallback((n, f) => this.videoFrameCallback(n, f));
+      if (this.current.requestVideoFrameCallback) {
+        this.current.requestVideoFrameCallback((n, f) => this.videoFrameCallback(n, f));
+      } else {
+        requestAnimationFrame(now => this.videoFrameCallback(now, this.mockFrame))
+      }
     }
   }
 
@@ -61,7 +66,8 @@ export class Camera {
 
   setStream(stream) {
     // changing the srcObject on a video element doesn't work
-    this.currentData = false;
+    this.currentFrame = null;
+    this.mockFrame = null;
     if (this.current) {
       this.current.srcObject.getTracks().forEach(track => track.stop());
       this.current.srcObject = null;
@@ -74,6 +80,10 @@ export class Camera {
     this.container.appendChild(camera);
     
     camera.onloadedmetadata = e => {
+      this.mockFrame = {
+        width: camera.videoWidth,
+        height: camera.videoHeight
+      }
       console.log([camera.videoWidth, camera.videoHeight, "Camera"]);
     }
 
@@ -84,7 +94,7 @@ export class Camera {
   }
 
   capture(gl, texture) {
-    if (this.currentData) {
+    if (this.currentFrame) {
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texImage2D(gl.TEXTURE_2D, 0,  gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.current);
     }

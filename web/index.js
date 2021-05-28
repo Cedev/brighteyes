@@ -78,6 +78,9 @@ var colorTransformation = mat4.create();
 function makeRender() {
   const gl = canvas.getContext('webgl2');
   twgl.addExtensionsToContext(gl);
+  if (!gl.getExtension('EXT_float_blend')) {
+    reportError("Could not get WebGL extenstion EXT_float_blend")
+  }
   
   console.log([gl.drawingBufferWidth, gl.drawingBufferHeight, "Drawing Buffer"]);
 

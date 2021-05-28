@@ -26555,7 +26555,8 @@ var Camera = /*#__PURE__*/function () {
     this.onError = console.log;
     this.container = document.body.appendChild(document.createElement("div"));
     this.current = null;
-    this.currentData = false;
+    this.currentFrame = null;
+    this.mockFrame = null;
     this.changing = false;
     this.nextConstraints = null;
     this.callbacks = [];
@@ -26569,7 +26570,7 @@ var Camera = /*#__PURE__*/function () {
   }, {
     key: "videoFrameCallback",
     value: function videoFrameCallback(now, frame) {
-      this.currentData = true;
+      this.currentFrame = frame;
       var callbacks = this.callbacks;
       this.callbacks = [];
       callbacks.forEach(function (c) {
@@ -26583,9 +26584,15 @@ var Camera = /*#__PURE__*/function () {
       var _this = this;
 
       if (this.current) {
-        this.current.requestVideoFrameCallback(function (n, f) {
-          return _this.videoFrameCallback(n, f);
-        });
+        if (this.current.requestVideoFrameCallback) {
+          this.current.requestVideoFrameCallback(function (n, f) {
+            return _this.videoFrameCallback(n, f);
+          });
+        } else {
+          requestAnimationFrame(function (now) {
+            return _this.videoFrameCallback(now, _this.mockFrame);
+          });
+        }
       }
     }
   }, {
@@ -26618,8 +26625,11 @@ var Camera = /*#__PURE__*/function () {
   }, {
     key: "setStream",
     value: function setStream(stream) {
+      var _this3 = this;
+
       // changing the srcObject on a video element doesn't work
-      this.currentData = false;
+      this.currentFrame = null;
+      this.mockFrame = null;
 
       if (this.current) {
         this.current.srcObject.getTracks().forEach(function (track) {
@@ -26638,6 +26648,10 @@ var Camera = /*#__PURE__*/function () {
       this.container.appendChild(camera);
 
       camera.onloadedmetadata = function (e) {
+        _this3.mockFrame = {
+          width: camera.videoWidth,
+          height: camera.videoHeight
+        };
         console.log([camera.videoWidth, camera.videoHeight, "Camera"]);
       };
 
@@ -26648,7 +26662,7 @@ var Camera = /*#__PURE__*/function () {
   }, {
     key: "capture",
     value: function capture(gl, texture) {
-      if (this.currentData) {
+      if (this.currentFrame) {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.current);
       }
@@ -26746,6 +26760,11 @@ var colorTransformation = _glMatrix.mat4.create();
 function makeRender() {
   var gl = canvas.getContext('webgl2');
   twgl.addExtensionsToContext(gl);
+
+  if (!gl.getExtension('EXT_float_blend')) {
+    reportError("Could not get WebGL extenstion EXT_float_blend");
+  }
+
   console.log([gl.drawingBufferWidth, gl.drawingBufferHeight, "Drawing Buffer"]);
   var texture = twgl.createTexture(gl, {
     mag: gl.LINEAR,
