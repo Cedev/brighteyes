@@ -126,12 +126,15 @@ function makeRender() {
   return render;
 }
 
-function requestStream() {
-  console.log([window.innerWidth, window.innerHeight, "Window"]);
+function requestStream(e) {
+  // double facepalm isn't enough
+  var devicePixelRatio = window.devicePixelRatio || 1;
+  console.log([window.innerWidth, window.innerHeight, devicePixelRatio, "Window"]);
 
-  // Needed despite css to get the canvas to render at a high resolution
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  var outside = canvas.getBoundingClientRect()
+  canvas.width = outside.width * devicePixelRatio;
+  canvas.height = outside.height * devicePixelRatio;
+  console.log([canvas.width, canvas.height, "Canvas"]);
 
   // ask for the wrong thing for portrait because the phone always gives you the wrong thing
   const portrait = screen.orientation.type.startsWith('portrait');
@@ -139,8 +142,8 @@ function requestStream() {
   const constraints = {
     audio: false,
     video: {
-      width: { ideal: portrait ? window.innerHeight : window.innerWidth },
-      height: { ideal: portrait ? window.innerWidth : window.innerHeight },
+      width: { ideal: portrait ? canvas.height : canvas.width },
+      height: { ideal: portrait ? canvas.width : canvas.height },
       facingMode: { ideal: 'environment' }
     }
   };
