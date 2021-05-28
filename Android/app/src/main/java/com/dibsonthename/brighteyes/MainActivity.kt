@@ -39,7 +39,8 @@ class MainActivity : AppCompatActivity() {
         webSettings.mediaPlaybackRequiresUserGesture = false
         webSettings.builtInZoomControls = true
         webSettings.displayZoomControls = false
-        webView.setInitialScale(100)
+        webSettings.useWideViewPort = true
+        webSettings.loadWithOverviewMode = true
 
         webView.webViewClient = object : WebViewClient() {
             @RequiresApi(Build.VERSION_CODES.M)
