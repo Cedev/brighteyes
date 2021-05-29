@@ -57,6 +57,9 @@ export class Screen {
 
   display(colorMatrix, texture, width, height) {
     var gl = this.gl
+    gl.canvas.width = width;
+    gl.canvas.height = height;
+    
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.useProgram(this.program.program);
@@ -68,22 +71,9 @@ export class Screen {
     gl.depthFunc(gl.LEQUAL); 
     
     twgl.setBuffersAndAttributes(gl, this.program, this.buffers);
-    
-    const screenAr = gl.canvas.clientWidth / gl.canvas.clientHeight; 
-    const dataAr = width / height;
-    const arRatio = dataAr/screenAr;
 
     const positionMatrix = mat4.create();
-    if (arRatio > 1) {
-      // data is wider than screen
-      // shrink positions vertically
-      positionMatrix[4*1+1] = 1/arRatio;
-    } else if (arRatio < 1) {
-      // data is taller than screen
-      // shrink positions horizontally
-      positionMatrix[0] = arRatio;
-    }
-
+    
     twgl.setUniforms(this.program, {
       uPositionMatrix: positionMatrix,
       uSampler: {texture: texture},

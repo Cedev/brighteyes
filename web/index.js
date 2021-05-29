@@ -72,29 +72,33 @@ function prevMode() {
   mode = (mode + modes.length - 1) % modes.length;
 }
 
-var colorTransformation = mat4.create();
-
-
 function makeRender() {
   const gl = canvas.getContext('webgl2');
   twgl.addExtensionsToContext(gl);
   if (!gl.getExtension('EXT_float_blend')) {
     reportError("Could not get WebGL extenstion EXT_float_blend")
   }
-  
-  console.log([gl.drawingBufferWidth, gl.drawingBufferHeight, "Drawing Buffer"]);
 
   const texture =  twgl.createTexture(gl, {
     mag: gl.LINEAR,
     min: gl.LINEAR,
     src: [0,0,255,255]
   });
+
+  var lastFrame = {
+    width: 1,
+    height: 1
+  };
+
+  var colorTransformation = mat4.create();
   
   const statSampler = new StatSampler(gl, nsamples);
   const screen = new Screen(gl);
 
   function render(now, frame) {
     if (frame) {
+      lastFrame = frame;
+
       camera.capture(gl, texture);
       
       var pixels = statSampler.sample(texture);
@@ -112,14 +116,9 @@ function makeRender() {
       }
 
       colorTransformation = t;
-    } else {
-      frame = {
-        width: gl.canvas.width,
-        height: gl.canvas.height
-      }
     }
 
-    screen.display(colorTransformation, texture, frame.width, frame.height);
+    screen.display(colorTransformation, texture, lastFrame.width, lastFrame.height);
 
     camera.requestVideoFrameCallback(render);
   }
@@ -127,23 +126,12 @@ function makeRender() {
 }
 
 function requestStream(e) {
-  // double facepalm isn't enough
-  var devicePixelRatio = window.devicePixelRatio || 1;
-  console.log([window.innerWidth, window.innerHeight, devicePixelRatio, "Window"]);
-
-  var outside = canvas.getBoundingClientRect()
-  canvas.width = outside.width * devicePixelRatio;
-  canvas.height = outside.height * devicePixelRatio;
-  console.log([canvas.width, canvas.height, "Canvas"]);
-
-  // ask for the wrong thing for portrait because the phone always gives you the wrong thing
-  const portrait = screen.orientation.type.startsWith('portrait');
-
+  // 4096x4096 is usually the largest webgl texture size
   const constraints = {
     audio: false,
     video: {
-      width: { ideal: portrait ? canvas.height : canvas.width },
-      height: { ideal: portrait ? canvas.width : canvas.height },
+      width: { ideal: 4096, max: 4096 },
+      height: { ideal: 4096, max: 4096 },
       facingMode: { ideal: 'environment' }
     }
   };
@@ -154,9 +142,6 @@ function requestStream(e) {
 requestStream();
 const render = makeRender();
 requestAnimationFrame(now => render(now, null));
-
-window.addEventListener('resize', requestStream);
-
 
 
 var mc = new Hammer.Manager(canvas, {

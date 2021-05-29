@@ -26755,8 +26755,6 @@ function prevMode() {
   mode = (mode + modes.length - 1) % modes.length;
 }
 
-var colorTransformation = _glMatrix.mat4.create();
-
 function makeRender() {
   var gl = canvas.getContext('webgl2');
   twgl.addExtensionsToContext(gl);
@@ -26765,17 +26763,24 @@ function makeRender() {
     reportError("Could not get WebGL extenstion EXT_float_blend");
   }
 
-  console.log([gl.drawingBufferWidth, gl.drawingBufferHeight, "Drawing Buffer"]);
   var texture = twgl.createTexture(gl, {
     mag: gl.LINEAR,
     min: gl.LINEAR,
     src: [0, 0, 255, 255]
   });
+  var lastFrame = {
+    width: 1,
+    height: 1
+  };
+
+  var colorTransformation = _glMatrix.mat4.create();
+
   var statSampler = new _stat_sampler.StatSampler(gl, nsamples);
   var screen = new _screen.Screen(gl);
 
   function render(now, frame) {
     if (frame) {
+      lastFrame = frame;
       camera.capture(gl, texture);
       var pixels = statSampler.sample(texture);
 
@@ -26798,14 +26803,9 @@ function makeRender() {
       }
 
       colorTransformation = t;
-    } else {
-      frame = {
-        width: gl.canvas.width,
-        height: gl.canvas.height
-      };
     }
 
-    screen.display(colorTransformation, texture, frame.width, frame.height);
+    screen.display(colorTransformation, texture, lastFrame.width, lastFrame.height);
     camera.requestVideoFrameCallback(render);
   }
 
@@ -26813,23 +26813,17 @@ function makeRender() {
 }
 
 function requestStream(e) {
-  // double facepalm isn't enough
-  var devicePixelRatio = window.devicePixelRatio || 1;
-  console.log([window.innerWidth, window.innerHeight, devicePixelRatio, "Window"]);
-  var outside = canvas.getBoundingClientRect();
-  canvas.width = outside.width * devicePixelRatio;
-  canvas.height = outside.height * devicePixelRatio;
-  console.log([canvas.width, canvas.height, "Canvas"]); // ask for the wrong thing for portrait because the phone always gives you the wrong thing
-
-  var portrait = screen.orientation.type.startsWith('portrait');
+  // 4096x4096 is usually the largest webgl texture size
   var constraints = {
     audio: false,
     video: {
       width: {
-        ideal: portrait ? canvas.height : canvas.width
+        ideal: 4096,
+        max: 4096
       },
       height: {
-        ideal: portrait ? canvas.width : canvas.height
+        ideal: 4096,
+        max: 4096
       },
       facingMode: {
         ideal: 'environment'
@@ -26844,7 +26838,6 @@ var render = makeRender();
 requestAnimationFrame(function (now) {
   return render(now, null);
 });
-window.addEventListener('resize', requestStream);
 var mc = new _hammerjs["default"].Manager(canvas, {
   recognizers: [[_hammerjs["default"].Tap], [_hammerjs["default"].Swipe]],
   touchAction: 'pinch-zoom'
@@ -27051,6 +27044,8 @@ var Screen = /*#__PURE__*/function () {
     key: "display",
     value: function display(colorMatrix, texture, width, height) {
       var gl = this.gl;
+      gl.canvas.width = width;
+      gl.canvas.height = height;
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
       gl.useProgram(this.program.program);
@@ -27059,21 +27054,8 @@ var Screen = /*#__PURE__*/function () {
       gl.enable(gl.DEPTH_TEST);
       gl.depthFunc(gl.LEQUAL);
       twgl.setBuffersAndAttributes(gl, this.program, this.buffers);
-      var screenAr = gl.canvas.clientWidth / gl.canvas.clientHeight;
-      var dataAr = width / height;
-      var arRatio = dataAr / screenAr;
 
       var positionMatrix = _glMatrix.mat4.create();
-
-      if (arRatio > 1) {
-        // data is wider than screen
-        // shrink positions vertically
-        positionMatrix[4 * 1 + 1] = 1 / arRatio;
-      } else if (arRatio < 1) {
-        // data is taller than screen
-        // shrink positions horizontally
-        positionMatrix[0] = arRatio;
-      }
 
       twgl.setUniforms(this.program, {
         uPositionMatrix: positionMatrix,
