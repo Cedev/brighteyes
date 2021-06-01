@@ -26849,7 +26849,42 @@ mc.on('tap', function (_) {
 mc.on('swipeleft', nextMode);
 mc.on('swipeup', nextMode);
 mc.on('swipedown', prevMode);
-mc.on('swiperight', prevMode);
+mc.on('swiperight', prevMode); // Register service worker to control making site work offline
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/web/sw.js').then(function () {
+    console.log('Service Worker Registered');
+  });
+} // Code to handle install prompt on desktop
+
+
+var deferredPrompt;
+var addBtn = document.querySelector('.add-button');
+addBtn.style.display = 'none';
+window.addEventListener('beforeinstallprompt', function (e) {
+  // Prevent Chrome 67 and earlier from automatically showing the prompt
+  e.preventDefault(); // Stash the event so it can be triggered later.
+
+  deferredPrompt = e; // Update UI to notify the user they can add to home screen
+
+  addBtn.style.display = 'block';
+  addBtn.addEventListener('click', function () {
+    // hide our user interface that shows our web button
+    addBtn.style.display = 'none'; // Show the prompt
+
+    deferredPrompt.prompt(); // Wait for the user to respond to the prompt
+
+    deferredPrompt.userChoice.then(function (choiceResult) {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('User accepted the web prompt');
+      } else {
+        console.log('User dismissed the web prompt');
+      }
+
+      deferredPrompt = null;
+    });
+  });
+});
 
 },{"./camera.js":19,"./la.js":21,"./prelude.js":22,"./screen.js":23,"./stat_sampler.js":24,"gl-matrix":2,"hammerjs":12,"twgl.js":18}],21:[function(require,module,exports){
 "use strict";
