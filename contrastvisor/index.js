@@ -155,7 +155,7 @@ var mc = new Hammer.Manager(canvas, {
 mc.on('tap',
   _ => {
     render(null, null)
-    download(canvas, 'BrightEyes capture')
+    download(canvas, 'Contrast Visor capture')
   }
 )
 mc.on('swipeleft', nextMode);
@@ -167,7 +167,7 @@ mc.on('swiperight', prevMode);
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker
-    .register('/web/sw.js')
+    .register('/contrastvisor/sw.js')
     .then(() => { console.log('Service Worker Registered'); });
 }
 

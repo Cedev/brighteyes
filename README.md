@@ -1,10 +1,10 @@
-# BrightEyes
+# Contrast Visor
 
 ![A varigated plant viewed in decorrelation stretch](imgs/4plantsacross.png "4 camera modes")
 
 Spot details through your camera using principal components analysis and decorrelation stretch.
 
-[Online version](https://cedev.github.io/brighteyes/)
+[Online version](https://cedev.github.io/contrastvisor/)
 
 There are 4 modes, which are switched between by swiping the screen in any direction:
 

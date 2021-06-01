@@ -1,13 +1,13 @@
 {
-  "name": "brighteyes",
-  "version": "0.2.0",
+  "name": "contrastvisor",
+  "version": "0.3.0",
   "description": "Spot details through your camera using principal components analysis and decorrelation stretch",
   "main": "index.js",
   "scripts": {
-    "build": "browserify web/index.js -o web/lib/bundle.js",
-    "watch": "watchify web/index.js -o web/lib/bundle.js -v",
+    "build": "browserify contrastvisor/index.js -o contrastvisor/lib/bundle.js",
+    "watch": "watchify contrastvisor/index.js -o contrastvisor/lib/bundle.js -v",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "cp web/index.html docs/ && cp web/lib/bundle.js docs/lib/"
+    "publish": "cp contrastvisor/index.html contrastvisor/manifest.webmanifest contrastvisor/sw.js docs/ && cp contrastvisor/lib/bundle.js docs/lib/ && cp -r contrastvisor/imgs docs/"
   },
   "author": "Cedric Shock",
   "license": "MIT",

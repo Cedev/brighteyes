@@ -10,6 +10,6 @@
     }
   ],
   "name": "Contrast Visor",
-  "short_name": "Constras Visor",
-  "start_url": "/web/index.html"
+  "short_name": "Contrast Visor",
+  "start_url": "/contrastvisor/index.html"
 }

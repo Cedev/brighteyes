@@ -1,9 +1,9 @@
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open('contrast-visor-store').then((cache) => cache.addAll([
-      '/web/',
-      '/web/index.html',
-      '/web/lib/bundle.js',
+      '/contrastvisor/',
+      '/contrastvisor/index.html',
+      '/contrastvisor/lib/bundle.js',
     ])),
   );
 });
