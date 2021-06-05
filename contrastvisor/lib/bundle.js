@@ -551,8 +551,10 @@ var Screen = /*#__PURE__*/function () {
     key: "display",
     value: function display(colorMatrix, texture, width, height) {
       var gl = this.gl;
-      gl.canvas.width = width;
-      gl.canvas.height = height;
+      var bounds = gl.canvas.getBoundingClientRect();
+      var scale = Math.min(1, bounds.width * window.devicePixelRatio / width, bounds.height * window.devicePixelRatio / height);
+      gl.canvas.width = width * scale;
+      gl.canvas.height = height * scale;
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
       gl.useProgram(this.program.program);
