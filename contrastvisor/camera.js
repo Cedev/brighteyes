@@ -1,9 +1,8 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+
 function videoCamera() {
-  var camera = document.createElement("video");
-  camera.setAttribute("playsInline", "");
-  camera.setAttribute("autoPlay", "");
-  camera.setAttribute("style", "display: none");
-  return camera;
+  return <video playsInline autoPlay style={{display: 'none'}}></video>
 }
 
 export class Camera {
@@ -76,8 +75,8 @@ export class Camera {
     while (this.container.firstChild) {
       this.container.removeChild(this.container.firstChild);
     }
-    const camera = videoCamera();
-    this.container.appendChild(camera);
+    ReactDOM.unmountComponentAtNode(this.container);
+    const camera = ReactDOM.render(videoCamera(), this.container);
     
     camera.onloadedmetadata = e => {
       this.mockFrame = {
