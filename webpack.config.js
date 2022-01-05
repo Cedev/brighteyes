@@ -1,4 +1,5 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: '/contrastvisor/index.js',
@@ -6,6 +7,12 @@ module.exports = {
     filename: 'bundle-wp.js',
     path: path.resolve(__dirname, 'contrastvisor/lib'),
   },
+  plugins: [
+    new HtmlWebpackPlugin({
+     title: 'Progressive Web Application',
+     template: 'contrastvisor/index.html'
+    }),
+  ],
   module: {
     rules: [
       {
