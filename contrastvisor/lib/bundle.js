@@ -16,7 +16,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
 function videoCamera() {
   return /*#__PURE__*/_react["default"].createElement("video", {
@@ -158,7 +158,7 @@ exports.Camera = Camera;
 },{"react":31,"react-dom":28}],2:[function(require,module,exports){
 "use strict";
 
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 
 var twgl = _interopRequireWildcard(require("twgl.js"));
 
@@ -373,14 +373,14 @@ window.addEventListener('beforeinstallprompt', function (e) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.decorStretcher = decorStretcher;
+exports.mapDiagonal = mapDiagonal;
+exports.mapMatrix = mapMatrix;
 exports.mat4From = mat4From;
 exports.mat4FromMatrix = mat4FromMatrix;
 exports.mat4ToMatrix = mat4ToMatrix;
 exports.matrixFrom = matrixFrom;
 exports.matrixFromDiag = matrixFromDiag;
-exports.mapDiagonal = mapDiagonal;
-exports.mapMatrix = mapMatrix;
-exports.decorStretcher = decorStretcher;
 
 var _glMatrix = require("gl-matrix");
 
@@ -519,7 +519,7 @@ exports.range = range;
 },{}],5:[function(require,module,exports){
 "use strict";
 
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -538,7 +538,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
 var vertexShader = "\n  attribute vec4 aVertexPosition;\n  attribute vec2 aTextureCoord;\n\n  uniform highp mat4 uPositionMatrix;\n\n  varying highp vec2 vTextureCoord;\n\n  void main(void) {\n    gl_Position = uPositionMatrix * aVertexPosition;\n    vTextureCoord = aTextureCoord;\n  }\n";
 var fragmentShader = "\n  varying highp vec2 vTextureCoord;\n\n  uniform sampler2D uSampler;\n  uniform highp mat4 uColorMatrix;\n\n  void main(void) {\n    highp vec4 texelColor = texture2D(uSampler, vTextureCoord);\n\n    gl_FragColor = uColorMatrix * vec4(texelColor.rgb, 1);\n  }\n";
@@ -594,7 +594,7 @@ exports.Screen = Screen;
 },{"gl-matrix":8,"twgl.js":38}],6:[function(require,module,exports){
 "use strict";
 
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -613,7 +613,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
 var vertexShader = "\n  attribute highp vec2 aTextureCoord;\n  \n  uniform highp vec4 uVertexPosition;\n    \n  varying highp vec2 vTextureCoord;\n  \n  void main(void) {\n    gl_Position = uVertexPosition;\n    gl_PointSize = 1.0;\n    vTextureCoord = aTextureCoord;\n  }\n";
 var fragmentShader = "\n  varying highp vec2 vTextureCoord;\n  \n  uniform sampler2D uSampler;\n  uniform highp vec4 uChannelIndex;\n\n  void main(void) {\n    highp vec4 texelColor = texture2D(uSampler, vTextureCoord);\n    \n    highp float channelValue = dot(uChannelIndex, vec4(texelColor.rgb, 1));\n    gl_FragColor = channelValue * vec4(texelColor.rgb, 1);\n  }\n";
