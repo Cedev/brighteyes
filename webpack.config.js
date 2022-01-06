@@ -3,10 +3,12 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
 
 module.exports = {
+  mode: 'development',
   entry: '/contrastvisor/index.js',
   output: {
-    filename: 'bundle-wp.js',
-    path: path.resolve(__dirname, 'contrastvisor/lib'),
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'build/contrastvisor'),
+    clean: true
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -30,6 +32,20 @@ module.exports = {
           options: {
             presets: ['@babel/preset-env', '@babel/preset-react']
           }
+        }
+      },
+      {
+        test: /\.png$/,
+        type: 'asset',
+        generator: {
+          filename: 'imgs/[name][ext]'
+        }
+      },
+      {
+        test: /\.webmanifest$/,
+        type: 'asset/resource',
+        generator: {
+          filename: '[name][ext]'
         }
       }
     ]
