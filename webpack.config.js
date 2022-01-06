@@ -6,7 +6,7 @@ module.exports = {
   mode: 'development',
   entry: '/contrastvisor/index.js',
   output: {
-    filename: 'bundle.js',
+    filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'build/contrastvisor'),
     clean: true
   },
@@ -49,5 +49,16 @@ module.exports = {
         }
       }
     ]
-  }
+  },
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+      },
+    },
+  },
 };
