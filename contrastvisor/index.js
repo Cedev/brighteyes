@@ -10,6 +10,10 @@ import { StatSampler } from './stat_sampler.js';
 import { Screen } from './screen.js';
 import { range } from './prelude.js'
 
+// Assets
+import eye162 from './imgs/eye162.png'
+const webmanifest = new URL('./manifest.webmanifest', import.meta.url);
+
 const nsamples = 1000;
 
 
@@ -167,7 +171,7 @@ mc.on('swiperight', prevMode);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('service-worker.js').then(registration => {
+    navigator.serviceWorker.register('service-worker.js', { scope: '.' }).then(registration => {
       console.log('SW registered: ', registration);
     }).catch(registrationError => {
       console.log('SW registration failed: ', registrationError);
