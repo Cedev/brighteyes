@@ -4,8 +4,9 @@
   "description": "Spot details through your camera using principal components analysis and decorrelation stretch",
   "main": "index.js",
   "scripts": {
-    "build": "browserify contrastvisor/index.js -o contrastvisor/lib/bundle.js",
-    "watch": "watchify contrastvisor/index.js -o contrastvisor/lib/bundle.js -v",
+    "build": "webpack",
+    "watch": "webpack --watch --progress",
+    "start": "http-server contrastvisor/lib",
     "test": "echo \"Error: no test specified\" && exit 1",
     "publish": "cp contrastvisor/index.html contrastvisor/manifest.webmanifest contrastvisor/sw.js docs/ && cp contrastvisor/lib/bundle.js docs/lib/ && cp -r contrastvisor/imgs docs/"
   },
@@ -30,7 +31,8 @@
     "html-webpack-plugin": "^5.5.0",
     "watchify": "^4.0.0",
     "webpack": "^5.65.0",
-    "webpack-cli": "^4.9.1"
+    "webpack-cli": "^4.9.1",
+    "workbox-webpack-plugin": "^6.4.2"
   },
   "browserify": {
     "transform": [

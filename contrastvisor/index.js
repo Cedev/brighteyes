@@ -166,9 +166,13 @@ mc.on('swiperight', prevMode);
 // Register service worker to control making site work offline
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker
-    .register('/contrastvisor/sw.js')
-    .then(() => { console.log('Service Worker Registered'); });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').then(registration => {
+      console.log('SW registered: ', registration);
+    }).catch(registrationError => {
+      console.log('SW registration failed: ', registrationError);
+    });
+  });
 }
 
 // Code to handle install prompt on desktop
