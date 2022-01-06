@@ -36,16 +36,16 @@ module.exports = {
       },
       {
         test: /\.png$/,
-        type: 'asset',
+        type: 'asset/resource',
         generator: {
-          filename: 'imgs/[name][ext]'
+          filename: pathData => path.relative('contrastvisor/', pathData.filename)
         }
       },
       {
         test: /\.webmanifest$/,
         type: 'asset/resource',
         generator: {
-          filename: '[name][ext]'
+          filename: pathData => path.relative('contrastvisor/', pathData.filename)
         }
       }
     ]
