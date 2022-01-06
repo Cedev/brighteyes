@@ -11,8 +11,8 @@ import { Screen } from './screen.js';
 import { range } from './prelude.js'
 
 // Assets
-import eye162 from './imgs/eye162.png'
-const webmanifest = new URL('./manifest.webmanifest', import.meta.url);
+import eye162 from './imgs/eye162.png';
+import webmanifest from './manifest.webmanifest';
 
 const nsamples = 1000;
 
