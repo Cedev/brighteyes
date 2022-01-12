@@ -3,12 +3,14 @@ import { mat4, vec3 } from 'gl-matrix';
 import Hammer from 'hammerjs';
 import {
   matrixFrom,
-  decorStretcher
+  decorStretcher,
+  mat4translateThenScale2d
 } from './la.js';
 import { Camera } from './camera.js';
 import { StatSampler } from './stat_sampler.js';
 import { Screen } from './screen.js';
 import { range } from './prelude.js'
+import { pinchZoom } from './zoom.js';
 
 // Assets
 import eye162 from './imgs/eye162.png';
@@ -76,6 +78,21 @@ function prevMode() {
   mode = (mode + modes.length - 1) % modes.length;
 }
 
+
+function oncePerTimestamp(f) {
+  var lastTimestamp = undefined;
+
+  return function(timestamp, ...args) {
+    if (timestamp != lastTimestamp) {
+      lastTimestamp = timestamp;
+      return f(timestamp, ...args);
+    }
+  }
+}
+
+
+var positionMatrix = mat4.create();
+
 function makeRender() {
   const gl = canvas.getContext('webgl2');
   twgl.addExtensionsToContext(gl);
@@ -99,6 +116,7 @@ function makeRender() {
   const statSampler = new StatSampler(gl, nsamples);
   const screen = new Screen(gl);
 
+  var renderOnce = undefined;
   function render(now, frame) {
     if (frame) {
       lastFrame = frame;
@@ -122,11 +140,12 @@ function makeRender() {
       colorTransformation = t;
     }
 
-    screen.display(colorTransformation, texture, lastFrame.width, lastFrame.height);
+    screen.display(colorTransformation, texture, lastFrame.width, lastFrame.height, positionMatrix);
 
-    camera.requestVideoFrameCallback(render);
+    camera.requestVideoFrameCallback(renderOnce);
   }
-  return render;
+  renderOnce = oncePerTimestamp(render);
+  return oncePerTimestamp(render);
 }
 
 function requestStream(e) {
@@ -143,17 +162,23 @@ function requestStream(e) {
   camera.change(constraints);
 }
 
+
+
+
 requestStream();
 const render = makeRender();
-requestAnimationFrame(now => render(now, null));
-
+function requestFrame() {
+  window.requestAnimationFrame(now => render(now, null));
+}
+requestFrame();
 
 var mc = new Hammer.Manager(canvas, {
-	recognizers: [
-    [Hammer.Tap],
-    [Hammer.Swipe]
+  recognizers: [
+    [Hammer.Tap, {taps: 2}],
+    [Hammer.Swipe],
+    [Hammer.Pinch]
   ],
-  touchAction: 'pinch-zoom'
+  touchAction: 'none'
 });
 
 mc.on('tap',
@@ -166,6 +191,16 @@ mc.on('swipeleft', nextMode);
 mc.on('swipeup', nextMode);
 mc.on('swipedown', prevMode);
 mc.on('swiperight', prevMode);
+
+
+pinchZoom(canvas, mc, function(proj) {
+  positionMatrix = mat4translateThenScale2d(proj.x, proj.y, proj.scale, 1);
+  // mat4.fromTranslation(positionMatrix, vec3.fromValues(proj.x, proj.y, 0));
+  // mat4.scale(positionMatrix, positionMatrix, vec3.fromValues(proj.scale, proj.scale, 1));
+  //console.log(proj, positionMatrix);
+  requestFrame();
+});
+
 
 // Register service worker to control making site work offline
 
