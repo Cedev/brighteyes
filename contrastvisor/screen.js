@@ -1,5 +1,6 @@
 import * as twgl  from 'twgl.js';
-import { mat4 } from 'gl-matrix';
+import { mat4, vec3 } from 'gl-matrix';
+import { matrixFromDiag, mat4ScaleThenTranslate2d, mat4translateThenScale2d } from './la';
 
 const vertexShader = `
   attribute vec4 aVertexPosition;
@@ -55,14 +56,33 @@ export class Screen {
   }
 
 
-  display(colorMatrix, texture, width, height) {
+  display(colorMatrix, texture, width, height, projection) {
     var gl = this.gl
 
     var bounds = gl.canvas.getBoundingClientRect();
-    var scale = Math.min(1, bounds.width*window.devicePixelRatio/width, bounds.height*window.devicePixelRatio/height);
+    // var scale = Math.min(1, bounds.width*window.devicePixelRatio/width, bounds.height*window.devicePixelRatio/height);
 
-    gl.canvas.width = width * scale;
-    gl.canvas.height = height * scale;
+    gl.canvas.width = bounds.width*window.devicePixelRatio;
+    gl.canvas.height = bounds.height*window.devicePixelRatio;
+
+    var dataUnit = Math.max(width, height);
+    var dataUnitWidth = width / dataUnit;
+    var dataUnitHeight = height / dataUnit;
+    var positionMatrix = mat4.create();
+    positionMatrix[0] = 0.5*dataUnitWidth;
+    positionMatrix[4*1 + 1] = -0.5*dataUnitHeight;
+
+    var screenUnit = Math.max(bounds.width, bounds.height);
+    var screenUnitWidth = bounds.width / screenUnit
+    var screenUnitHeight = bounds.height / screenUnit;
+    var viewMatrix = mat4.create();
+    viewMatrix[0] = 2/screenUnitWidth;
+    viewMatrix[4*1 + 1] = -2/screenUnitHeight;
+ 
+    var minScale = Math.min(screenUnitWidth/dataUnitWidth, screenUnitHeight/dataUnitHeight);
+
+    mat4.multiply(positionMatrix, projection, positionMatrix);
+    mat4.multiply(positionMatrix, viewMatrix, positionMatrix);
     
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -75,8 +95,6 @@ export class Screen {
     gl.depthFunc(gl.LEQUAL); 
     
     twgl.setBuffersAndAttributes(gl, this.program, this.buffers);
-
-    const positionMatrix = mat4.create();
     
     twgl.setUniforms(this.program, {
       uPositionMatrix: positionMatrix,
