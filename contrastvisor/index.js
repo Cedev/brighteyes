@@ -1,6 +1,8 @@
 import * as twgl  from 'twgl.js';
 import { mat4, vec3 } from 'gl-matrix';
 import Hammer from 'hammerjs';
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import {
   matrixFrom,
   decorStretcher,
@@ -18,8 +20,6 @@ import webmanifest from './manifest.webmanifest';
 
 const nsamples = 1000;
 
-
-const camera = new Camera();
 const canvas = document.getElementById('screen');
 const errors = document.getElementById('errors');
 const downloader = document.getElementById('downloader');
@@ -32,8 +32,6 @@ function reportError(err) {
   div.appendChild(text);
   errors.appendChild(div);
 }
-
-camera.onError = reportError;
 
 function download(canvas, prefix) {
   downloader.setAttribute('download', prefix + ' ' + new Date().toJSON().replace('T', ' ').replaceAll(':', '.') + '.png');
@@ -93,36 +91,38 @@ function oncePerTimestamp(f) {
 
 var positionMatrix = mat4.create();
 
+
+const gl = canvas.getContext('webgl2');
+twgl.addExtensionsToContext(gl);
+if (!gl.getExtension('EXT_float_blend')) {
+  reportError("Could not get WebGL extenstion EXT_float_blend")
+}
+
+const texture =  twgl.createTexture(gl, {
+  mag: gl.LINEAR,
+  min: gl.LINEAR,
+  src: [0,0,255,255]
+});
+
+var lastFrame = {
+  width: 1,
+  height: 1
+};
+
+var newFrame = null;
+
 function makeRender() {
-  const gl = canvas.getContext('webgl2');
-  twgl.addExtensionsToContext(gl);
-  if (!gl.getExtension('EXT_float_blend')) {
-    reportError("Could not get WebGL extenstion EXT_float_blend")
-  }
-
-  const texture =  twgl.createTexture(gl, {
-    mag: gl.LINEAR,
-    min: gl.LINEAR,
-    src: [0,0,255,255]
-  });
-
-  var lastFrame = {
-    width: 1,
-    height: 1
-  };
-
   var colorTransformation = mat4.create();
   
   const statSampler = new StatSampler(gl, nsamples);
   const screen = new Screen(gl);
 
   var renderOnce = undefined;
-  function render(now, frame) {
-    if (frame) {
-      lastFrame = frame;
+  function render(now) {
+    if (newFrame) {
+      lastFrame = newFrame;
+      newFrame = null;
 
-      camera.capture(gl, texture);
-      
       var pixels = statSampler.sample(texture);
       const sums = (i,j) => pixels[i*4 + j];
       var cov = sumsToCov(sums);
@@ -141,36 +141,45 @@ function makeRender() {
     }
 
     screen.display(colorTransformation, texture, lastFrame.width, lastFrame.height, positionMatrix);
-
-    camera.requestVideoFrameCallback(renderOnce);
   }
   renderOnce = oncePerTimestamp(render);
-  return oncePerTimestamp(render);
+  return renderOnce;
 }
 
-function requestStream(e) {
-  // 4096x4096 is usually the largest webgl texture size
-  const constraints = {
-    audio: false,
-    video: {
-      width: { ideal: 4096, max: 4096 },
-      height: { ideal: 4096, max: 4096 },
-      facingMode: { ideal: 'environment' }
-    }
-  };
-
-  camera.change(constraints);
-}
-
-
-
-
-requestStream();
 const render = makeRender();
 function requestFrame() {
-  window.requestAnimationFrame(now => render(now, null));
+  window.requestAnimationFrame(render);
 }
 requestFrame();
+
+
+function onCameraFrame(now, frame, camera) {
+  newFrame = frame;
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, camera);
+  requestFrame();
+}
+
+
+function Flipper() {
+  const [ar, setAr] = useState(0.6);
+
+  return <>
+    <button onClick={() => setAr(1/ar)}>Flip</button>
+    <Camera constraints={{
+    audio: false,
+    video: {
+      width: { ideal: 4096*ar, max: 4096 },
+      height: { ideal: 4096/ar, max: 4096 },
+      facingMode: { ideal: 'environment' },
+      aspectRatio: ar
+    }
+    }} onFrame={onCameraFrame} />
+  </>
+}
+
+ReactDOM.render(<Flipper />, document.getElementById('root'));
+
 
 var mc = new Hammer.Manager(canvas, {
   recognizers: [
