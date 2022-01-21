@@ -8,28 +8,36 @@
     body {
       margin: 0;
     }
-    html, body, #drape, #screen {
+    html, body, #root, .maximal {
       height: 100%;
       width: 100%;
     }
-    #drape {
+    .drape {
       background-color: black;
-    }
-    #screen {
-      touch-action: none;
     }
     #settings {
       display: none;
+    }
+    .wrapper {
+      display: grid;
+      grid-template-rows: 50% 50%;
+      grid-template-columns: 100%;
+      grid-template-areas: 
+        "screen"
+        "settings"
+    }
+    .screen {
+      grid-area: "screen";
+    }
+    .settings {
+      grid-area: "settings";
     }
   </style>
 </head>
 
 <body>
-<div id="errors">
-</div>
 
-<div id="drape">
-  <canvas id="screen"></canvas>
+<div id="errors">
 </div>
 
 <div id="settings">
@@ -37,7 +45,7 @@
 </div>
 
 <div id="root">
-  
+
 </div>
 
 <a id="downloader"></a>

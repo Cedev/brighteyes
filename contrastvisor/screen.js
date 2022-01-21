@@ -81,7 +81,9 @@ export class Screen {
  
     var minScale = Math.min(screenUnitWidth/dataUnitWidth, screenUnitHeight/dataUnitHeight);
 
-    mat4.multiply(positionMatrix, projection, positionMatrix);
+    if (projection) {
+      mat4.multiply(positionMatrix, projection, positionMatrix);
+    }
     mat4.multiply(positionMatrix, viewMatrix, positionMatrix);
     
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);

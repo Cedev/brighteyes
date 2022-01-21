@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState, } from 'react';
-import useDeepCompareEffect from 'use-deep-compare-effect'
-import { PromiseSerializer } from './promises.js'
+import { useDeepCompareEffectNoCheck } from 'use-deep-compare-effect'
+import { FastForwardSerializer } from './promises.js'
 
 
 function stopStream(stream) {
@@ -18,15 +18,16 @@ export function Camera({ constraints, onFrame }) {
   const camera = useRef();
   const frameHandler = useRef();
   frameHandler.current = onFrame;
-  const [streamManager] = useState(PromiseSerializer);
+  const [streamManager] = useState(FastForwardSerializer);
 
-  useDeepCompareEffect(() => {
-    // Start a new stream
-    var streamStarted = navigator.mediaDevices.getUserMedia(constraints);
-    var streamDone = streamManager(streamStarted, stream => {
-      camera.current.srcObject = stream;
-    });
-    streamDone.then(stopStream);
+  useDeepCompareEffectNoCheck(() => {
+    streamManager(() => 
+      // Start a new stream
+      navigator.mediaDevices.getUserMedia(constraints).catch(console.error).then(stream => {
+        camera.current.srcObject = stream;
+        return () => stopStream(stream);
+      })
+    );
   }, [constraints]);
 
   // Start watching the camera
