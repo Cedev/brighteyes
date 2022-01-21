@@ -59,10 +59,18 @@ export function App() {
       ],
       touchAction: 'none'
     });
-    mc.on('swipeleft', () => setMode(nextMode));
-    mc.on('swipeup', () => setMode(nextMode));
-    mc.on('swipedown', () => setMode(prevMode));
-    mc.on('swiperight', () => setMode(prevMode));
+
+    function getHorizontal() {
+      return window.getComputedStyle(screen).getPropertyValue('--cv-horizontal-layout');
+    }
+
+    function byLayout(gesture1, gesture2, action1, action2) {
+      mc.on(gesture1, () => getHorizontal() ? action1() : action2());
+      mc.on(gesture2, () => getHorizontal() ? action2() : action1());
+    }
+
+    byLayout('swipeleft', 'swipeup', () => setSettingsOpen(true), () => setMode(nextMode));
+    byLayout('swiperight', 'swipedown', () => setSettingsOpen(false), () => setMode(prevMode));
 
     pinchZoom(screen, mc, function (proj) {
       var positionMatrix = mat4translateThenScale2d(proj.x, proj.y, proj.scale, 1);
