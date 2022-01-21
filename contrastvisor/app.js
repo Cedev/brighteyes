@@ -31,6 +31,9 @@ const nextMode = mode => (mode + 1) % modes.length;
 
 const prevMode = mode => (mode + modes.length - 1) % modes.length;
 
+function unFuck(setState) {
+  return newState => setState(() => newState);
+}
 
 export function App() {
 
@@ -38,14 +41,11 @@ export function App() {
   const [mode, setMode] = useState(0);
   const [projection, setProjection] = useState();
   const [videoConstraints, setVideoConstraints] = useState({
-    width: { ideal: 1024, max: 4096 },
-    height: { ideal: 1024, max: 4096 }
+    width: { ideal: 4096, max: 4096 },
+    height: { ideal: 4096, max: 4096 }
   });
 
-  var className = "wrapper maximal"
-  if (settingsOpen) {
-    className += " settingsOpen";
-  }
+  var className = "wrapper maximal " + (settingsOpen ? "settingsOpen" : "settingsClosed");
 
   const currentMode = modes[mode % modes.length];
 
@@ -69,13 +69,10 @@ export function App() {
       mc.on(gesture2, () => getHorizontal() ? action2() : action1());
     }
 
-    byLayout('swipeleft', 'swipeup', () => setSettingsOpen(true), () => setMode(nextMode));
-    byLayout('swiperight', 'swipedown', () => setSettingsOpen(false), () => setMode(prevMode));
+    byLayout('swipeleft', 'swipedown', () => setSettingsOpen(true), () => setMode(nextMode));
+    byLayout('swiperight', 'swipeup', () => setSettingsOpen(false), () => setMode(prevMode));
 
-    pinchZoom(screen, mc, function (proj) {
-      var positionMatrix = mat4translateThenScale2d(proj.x, proj.y, proj.scale, 1);
-      setProjection(positionMatrix);
-    });
+    pinchZoom(screen, mc, unFuck(setProjection));
   }, []);
 
   return <div className={className}>
