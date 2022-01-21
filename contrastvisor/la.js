@@ -53,7 +53,7 @@ export function mat4translateThenScale2d(x, y, scale, yfactor=1) {
   );
 }
 
-export function mat4ScaleThenTranslate2d(x, y, scale, yfactor=1) {
+export function mat4scaleThenTranslate2d(x, y, scale, yfactor=1) {
   return mat4.fromValues(
     scale, 0, 0, 0,
     0, scale*yfactor, 0, 0,

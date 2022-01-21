@@ -1,6 +1,5 @@
 import * as twgl  from 'twgl.js';
 import { mat4, vec3 } from 'gl-matrix';
-import { matrixFromDiag, mat4ScaleThenTranslate2d, mat4translateThenScale2d } from './la';
 
 const vertexShader = `
   attribute vec4 aVertexPosition;
@@ -78,8 +77,6 @@ export class Screen {
     var viewMatrix = mat4.create();
     viewMatrix[0] = 2/screenUnitWidth;
     viewMatrix[4*1 + 1] = -2/screenUnitHeight;
- 
-    var minScale = Math.min(screenUnitWidth/dataUnitWidth, screenUnitHeight/dataUnitHeight);
 
     if (projection) {
       mat4.multiply(positionMatrix, projection, positionMatrix);
