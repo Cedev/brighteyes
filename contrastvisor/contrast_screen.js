@@ -1,13 +1,13 @@
 import React, { useCallback, useRef } from "react";
 
 import * as twgl from 'twgl.js';
-import { mat4, vec3 } from 'gl-matrix';
+import { mat3, mat4, vec2, vec3 } from 'gl-matrix';
 import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect";
 
 import {
   matrixFrom,
   decorStretcher,
-  mat4translateThenScale2d
+  mat4scaleThenTranslate2d
 } from './la.js';
 import { Camera } from './camera.js';
 import { StatSampler } from './stat_sampler.js';
@@ -68,6 +68,8 @@ export function ContrastScreen(props) {
       height: 1
     };
 
+    var seenCamera = false;
+
     const statSampler = new StatSampler(gl, nsamples);
     const screen = new Screen(gl);
 
@@ -78,30 +80,42 @@ export function ContrastScreen(props) {
 
       if (nextFrame.current) {
         // Copy camera to texture
-        lastFrame = nextFrame.current.frame;
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, nextFrame.current.camera);
+        lastFrame = nextFrame.current.frame;
+        seenCamera = true;
         nextFrame.current = null;
       }
       
       var positionMatrix = mat4.create();
+      var sampleMatrix = mat3.create()
       if (projection) {
-        var proj = projection(lastFrame.width/lastFrame.height);
-        positionMatrix = mat4translateThenScale2d(proj.x, proj.y, proj.scale);
+        const proj = projection(lastFrame.width/lastFrame.height);
+        positionMatrix = mat4scaleThenTranslate2d(proj.toScreen.x, proj.toScreen.y, proj.toScreen.scale);
+
+        const bounds = proj.screenBoundsInImage;
+        mat3.translate(sampleMatrix, sampleMatrix, vec2.fromValues(
+          1/2 + bounds.left/proj.imageWidth,
+          1/2 + bounds.top/proj.imageHeight));
+        mat3.scale(sampleMatrix, sampleMatrix, vec2.fromValues(
+          (bounds.right - bounds.left)/proj.imageWidth,
+          (bounds.bottom - bounds.top)/proj.imageHeight));
       }
 
       var colorTransformation = mat4.create();
-      if (decor) {
-        var pixels = statSampler.sample(texture);
-        const sums = (i, j) => pixels[i * 4 + j];
-        var cov = sumsToCov(sums);
-        var means = vec3.fromValues(sums(0, 3) / sums(3, 3), sums(1, 3) / sums(3, 3), sums(2, 3) / sums(3, 3))
+      if (seenCamera) {
+        if (decor) {
+          var pixels = statSampler.sample(texture, sampleMatrix);
+          const sums = (i, j) => pixels[i * 4 + j];
+          var cov = sumsToCov(sums);
+          var means = vec3.fromValues(sums(0, 3) / sums(3, 3), sums(1, 3) / sums(3, 3), sums(2, 3) / sums(3, 3))
 
-        colorTransformation = decorStretcher(cov, means, decor);
-      }
+          colorTransformation = decorStretcher(cov, means, decor);
+        }
 
-      if (post) {
-        mat4.multiply(colorTransformation, post, colorTransformation);
+        if (post) {
+          mat4.multiply(colorTransformation, post, colorTransformation);
+        }
       }
   
       screen.display(colorTransformation, texture, lastFrame.width, lastFrame.height, positionMatrix);

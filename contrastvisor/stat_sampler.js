@@ -18,11 +18,12 @@ const vertexShader = `
 const fragmentShader = `
   varying highp vec2 vTextureCoord;
   
+  uniform highp mat3 uCoordMatrix;
   uniform sampler2D uSampler;
   uniform highp vec4 uChannelIndex;
 
   void main(void) {
-    highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
+    highp vec4 texelColor = texture2D(uSampler, vec2(uCoordMatrix * vec3(vTextureCoord, 1)));
     
     highp float channelValue = dot(uChannelIndex, vec4(texelColor.rgb, 1));
     gl_FragColor = channelValue * vec4(texelColor.rgb, 1);
@@ -71,7 +72,7 @@ export class StatSampler {
     ], 4, 1);
   }
 
-  sample(texture) {
+  sample(texture, region) {
     var gl = this.gl;
     twgl.bindFramebufferInfo(gl, this.fb);
     gl.useProgram(this.program.program);
@@ -89,6 +90,7 @@ export class StatSampler {
     for (var channel in range(4)) {
       twgl.setUniforms(this.program, {
         uVertexPosition: positions[channel],
+        uCoordMatrix: region,
         uChannelIndex: channels[channel],
         uSampler: {
           texture: texture,
