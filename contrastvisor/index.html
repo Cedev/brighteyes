@@ -20,12 +20,32 @@
     }
     .wrapper {
       display: grid;
+      grid-template-rows: 100%;
+      grid-template-columns: 100%;
+      grid-template-areas: 
+        "screen"
+    }
+
+    .wrapper.settingsOpen {
       grid-template-rows: 50% 50%;
       grid-template-columns: 100%;
       grid-template-areas: 
         "screen"
         "settings"
     }
+
+    @media (min-aspect-ratio: 1/1) {
+      .wrapper {
+        --cv-horizontal-layout: true;
+      }
+      .wrapper.settingsOpen {
+        grid-template-rows: 100%;
+        grid-template-columns: 50% 50%;
+        grid-template-areas: 
+          "screen settings";
+      }
+    }
+    
     .screen {
       grid-area: "screen";
     }
