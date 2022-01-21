@@ -6,7 +6,8 @@ import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect";
 
 import {
   matrixFrom,
-  decorStretcher
+  decorStretcher,
+  mat4translateThenScale2d
 } from './la.js';
 import { Camera } from './camera.js';
 import { StatSampler } from './stat_sampler.js';
@@ -82,6 +83,12 @@ export function ContrastScreen(props) {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, nextFrame.current.camera);
         nextFrame.current = null;
       }
+      
+      var positionMatrix = mat4.create();
+      if (projection) {
+        var proj = projection(lastFrame.width/lastFrame.height);
+        positionMatrix = mat4translateThenScale2d(proj.x, proj.y, proj.scale);
+      }
 
       var colorTransformation = mat4.create();
       if (decor) {
@@ -97,7 +104,7 @@ export function ContrastScreen(props) {
         mat4.multiply(colorTransformation, post, colorTransformation);
       }
   
-      screen.display(colorTransformation, texture, lastFrame.width, lastFrame.height, projection);
+      screen.display(colorTransformation, texture, lastFrame.width, lastFrame.height, positionMatrix);
     }
     renderOnce = oncePerTimestamp(render);
     renderFrame.current = renderOnce;

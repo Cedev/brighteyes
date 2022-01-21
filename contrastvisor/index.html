@@ -30,8 +30,8 @@
       grid-template-rows: 50% 50%;
       grid-template-columns: 100%;
       grid-template-areas: 
-        "screen"
         "settings"
+        "screen"
     }
 
     @media (min-aspect-ratio: 1/1) {
@@ -40,7 +40,7 @@
       }
       .wrapper.settingsOpen {
         grid-template-rows: 100%;
-        grid-template-columns: 50% 50%;
+        grid-template-columns: 1fr fit-content(50%);
         grid-template-areas: 
           "screen settings";
       }
@@ -51,6 +51,9 @@
     }
     .settings {
       grid-area: "settings";
+    }
+    .settingsClosed .settings {
+      display: none;
     }
   </style>
 </head>
