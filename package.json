@@ -13,6 +13,7 @@
   "author": "Cedric Shock",
   "license": "MIT",
   "dependencies": {
+    "file-saver": "^2.0.5",
     "gl-matrix": "^3.3.0",
     "hammerjs": "^2.0.8",
     "ml-matrix": "^6.8.0",

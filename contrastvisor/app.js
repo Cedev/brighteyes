@@ -2,12 +2,10 @@ import React, { useCallback, useState } from "react";
 import { mat4 } from 'gl-matrix';
 import Hammer from 'hammerjs';
 import { CameraConstraints } from "./camera_constraints.js";
-import { ContrastScreen } from "./contrast_screen.js";
-import {
-  mat4translateThenScale2d
-} from './la.js';
-  
+import { ContrastScreen } from "./contrast_screen.js";  
 import { pinchZoom } from './zoom.js';
+import { useSignal } from "./hooks.js";
+import { ImageFormat, png } from "./settings.js";
 
 const negative = mat4.fromValues(
   -1, 0, 0, 0,
@@ -35,7 +33,7 @@ function unFuck(setState) {
   return newState => setState(() => newState);
 }
 
-export function App() {
+export function App({filePrefix="Contrast Visor capture"}) {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mode, setMode] = useState(0);
@@ -44,10 +42,19 @@ export function App() {
     width: { ideal: 4096, max: 4096 },
     height: { ideal: 4096, max: 4096 }
   });
+  const [imageFormat, setImageFormat] = useState(png);
+  const [captureSignal, setCaptureSignal] = useSignal();
 
   var className = "wrapper maximal " + (settingsOpen ? "settingsOpen" : "settingsClosed");
 
   const currentMode = modes[mode % modes.length];
+
+  const [current] = useState({});
+  current.tap = useCallback(() => {
+    setCaptureSignal({
+      type: imageFormat.value,
+      fileName: filePrefix + ' ' + new Date().toJSON().replace('T', ' ').replaceAll(':', '.') + imageFormat.extension});
+  }, [imageFormat, filePrefix]);
 
   const screenRef = useCallback(screen => {
     // Set event handlers on the screen
@@ -59,6 +66,8 @@ export function App() {
       ],
       touchAction: 'none'
     });
+
+    mc.on('tap', () => current.tap());
 
     function getHorizontal() {
       return window.getComputedStyle(screen).getPropertyValue('--cv-horizontal-layout');
@@ -77,10 +86,15 @@ export function App() {
 
   return <div className={className}>
     <div ref={screenRef} className="screen maximal">
-      <ContrastScreen videoConstraints={videoConstraints} projection={projection} {...currentMode} />
+      <ContrastScreen videoConstraints={videoConstraints} projection={projection} {...currentMode} captureSignal={captureSignal} />
     </div>
     <div className="settings">
       <CameraConstraints constraints={videoConstraints} onChange={setVideoConstraints} />
+
+      <label>
+        Image format:
+        <ImageFormat value={imageFormat} onChange={setImageFormat} />
+      </label>
     </div>
   </div>
 }

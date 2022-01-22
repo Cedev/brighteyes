@@ -55,14 +55,20 @@ export class Screen {
   }
 
 
-  display(colorMatrix, texture, width, height, projection) {
+  display(colorMatrix, texture, width, height, projection, resolution=null) {
     var gl = this.gl
 
     var bounds = gl.canvas.getBoundingClientRect();
-    // var scale = Math.min(1, bounds.width*window.devicePixelRatio/width, bounds.height*window.devicePixelRatio/height);
 
-    gl.canvas.width = bounds.width*window.devicePixelRatio;
-    gl.canvas.height = bounds.height*window.devicePixelRatio;
+    if (resolution) {
+      gl.canvas.width = resolution.width;
+      gl.canvas.height = resolution.height;
+    } else {
+      // Use screen resolution
+      gl.canvas.width = bounds.width*window.devicePixelRatio;
+      gl.canvas.height = bounds.height*window.devicePixelRatio;
+    }
+
 
     var dataUnit = Math.max(width, height);
     var dataUnitWidth = width / dataUnit;
@@ -71,12 +77,20 @@ export class Screen {
     positionMatrix[0] = 0.5*dataUnitWidth;
     positionMatrix[4*1 + 1] = -0.5*dataUnitHeight;
 
-    var screenUnit = Math.max(bounds.width, bounds.height);
-    var screenUnitWidth = bounds.width / screenUnit
-    var screenUnitHeight = bounds.height / screenUnit;
-    var viewMatrix = mat4.create();
-    viewMatrix[0] = 2/screenUnitWidth;
-    viewMatrix[4*1 + 1] = -2/screenUnitHeight;
+    // scale from screen unit (canvas bounds) to canvas units (canvas draw area size)
+    const screenUnit = Math.max(bounds.width, bounds.height);
+    const screenUnitWidth = bounds.width / screenUnit;
+    const screenUnitHeight = bounds.height / screenUnit;
+    
+    const drawUnit = Math.max(gl.canvas.width, gl.canvas.height);
+    const drawUnitWidth = gl.canvas.width / drawUnit
+    const drawUnitHeight = gl.canvas.height / drawUnit;
+
+    const scale = Math.max(drawUnitWidth/screenUnitWidth, drawUnitHeight/screenUnitHeight);
+
+    const viewMatrix = mat4.create();
+    viewMatrix[0] = 2/drawUnitWidth*scale;
+    viewMatrix[4*1 + 1] = -2/drawUnitHeight*scale;
 
     if (projection) {
       mat4.multiply(positionMatrix, projection, positionMatrix);

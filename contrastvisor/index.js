@@ -18,11 +18,6 @@ function reportError(err) {
   errors.appendChild(div);
 }
 
-function download(canvas, prefix) {
-  downloader.setAttribute('download', prefix + ' ' + new Date().toJSON().replace('T', ' ').replaceAll(':', '.') + '.png');
-  downloader.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
-  downloader.click();
-}
 
 ReactDOM.render(<App />, document.getElementById('root'));
 

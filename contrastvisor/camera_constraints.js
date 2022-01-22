@@ -16,7 +16,10 @@ export function CameraConstraints({ constraints, onChange }) {
     }
   }
 
-  return <CameraSelector value={constraints?.deviceId?.exact} onChange={changeCamera} />
+  return <label>
+    Camera:
+    <CameraSelector value={constraints?.deviceId?.exact} onChange={changeCamera} />
+  </label>;
 }
 
 export function CameraSelector({ value, onChange }) {
