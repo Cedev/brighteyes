@@ -4,7 +4,7 @@ import Hammer from 'hammerjs';
 import { CameraConstraints } from "./camera_constraints.js";
 import { ContrastScreen } from "./contrast_screen.js";  
 import { pinchZoom } from './zoom.js';
-import { useSignal } from "./hooks.js";
+import { useLocalStorageState, useSignal } from "./hooks.js";
 import { ImageFormat, png } from "./settings.js";
 
 const negative = mat4.fromValues(
@@ -38,11 +38,15 @@ export function App({filePrefix="Contrast Visor capture"}) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mode, setMode] = useState(0);
   const [projection, setProjection] = useState();
-  const [videoConstraints, setVideoConstraints] = useState({
+  const [videoConstraints, setVideoConstraints] = useLocalStorageState(
+    'contrast-visor.settings.videoConstraints',
+    {
     width: { ideal: 4096, max: 4096 },
     height: { ideal: 4096, max: 4096 }
   });
-  const [imageFormat, setImageFormat] = useState(png);
+  const [imageFormat, setImageFormat] = useLocalStorageState(
+    'contrast-visor.settings.imageFormat',
+    png);
   const [captureSignal, setCaptureSignal] = useSignal();
 
   var className = "wrapper maximal " + (settingsOpen ? "settingsOpen" : "settingsClosed");
