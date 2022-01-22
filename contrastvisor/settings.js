@@ -1,7 +1,7 @@
 import React from "react";
 import Select from 'react-select';
 
-export const jpg = { value: "image/jpg", label: "JPEG", extension: '.jpg' }
+export const jpg = { value: "image/jpeg", label: "JPEG", extension: '.jpg' }
 export const png = { value: "image/png", label: "PNG", extension: '.png' }
 
 export function ImageFormat({ value, onChange }) {
