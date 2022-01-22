@@ -3,6 +3,7 @@ import React, { useCallback, useRef } from "react";
 import * as twgl from 'twgl.js';
 import { mat3, mat4, vec2, vec3 } from 'gl-matrix';
 import { useDeepCompareEffectNoCheck } from "use-deep-compare-effect";
+import { saveAs } from 'file-saver';
 
 import {
   matrixFrom,
@@ -76,7 +77,7 @@ export function ContrastScreen(props) {
     var renderOnce = undefined;
     function render(now) {
       // Unpack current props
-      var {decor, post, projection} = propsRef.current
+      var {decor, post, projection, captureSignal} = propsRef.current
 
       if (nextFrame.current) {
         // Copy camera to texture
@@ -88,7 +89,9 @@ export function ContrastScreen(props) {
       }
       
       var positionMatrix = mat4.create();
-      var sampleMatrix = mat3.create()
+      var sampleMatrix = mat3.create();
+      var displayedWidth = lastFrame.width;
+      var displayedHeight = lastFrame.height;
       if (projection) {
         const proj = projection(lastFrame.width/lastFrame.height);
         positionMatrix = mat4scaleThenTranslate2d(proj.toScreen.x, proj.toScreen.y, proj.toScreen.scale);
@@ -97,9 +100,12 @@ export function ContrastScreen(props) {
         mat3.translate(sampleMatrix, sampleMatrix, vec2.fromValues(
           1/2 + bounds.left/proj.imageWidth,
           1/2 + bounds.top/proj.imageHeight));
-        mat3.scale(sampleMatrix, sampleMatrix, vec2.fromValues(
-          (bounds.right - bounds.left)/proj.imageWidth,
-          (bounds.bottom - bounds.top)/proj.imageHeight));
+        var widthRatio = (bounds.right - bounds.left)/proj.imageWidth;
+        var heightRatio = (bounds.bottom - bounds.top)/proj.imageHeight;
+        mat3.scale(sampleMatrix, sampleMatrix, vec2.fromValues(widthRatio, heightRatio));
+
+        displayedWidth = lastFrame.width * widthRatio;
+        displayedHeight = lastFrame.height * heightRatio;
       }
 
       var colorTransformation = mat4.create();
@@ -117,8 +123,20 @@ export function ContrastScreen(props) {
           mat4.multiply(colorTransformation, post, colorTransformation);
         }
       }
+
+      const capture = captureSignal();
+      var resolution;
+      if (capture) {
+        resolution = {width: displayedWidth, height: displayedHeight};
+      }
   
-      screen.display(colorTransformation, texture, lastFrame.width, lastFrame.height, positionMatrix);
+      screen.display(colorTransformation, texture, lastFrame.width, lastFrame.height, positionMatrix, resolution);
+
+      if (capture) {
+        node.toBlob(blob => {
+          saveAs(blob, capture.fileName);
+        }, capture.type)
+      }
     }
     renderOnce = oncePerTimestamp(render);
     renderFrame.current = renderOnce;
@@ -142,7 +160,7 @@ export function ContrastScreen(props) {
   }
 
   return <>
-    <canvas ref={canvasRef} className="maximal"></canvas>
+    <canvas ref={canvasRef} className="maximal" style={{objectFit: 'contain'}} />
     <Camera constraints={{
       audio: false,
       video: videoConstraints,

@@ -20,10 +20,11 @@
     }
     .wrapper {
       display: grid;
-      grid-template-rows: 100%;
+      grid-template-rows: 100% 0;
       grid-template-columns: 100%;
       grid-template-areas: 
         "screen"
+        "settings"
     }
 
     .wrapper.settingsOpen {
@@ -46,11 +47,11 @@
       }
     }
     
-    .screen {
-      grid-area: "screen";
+    .wrapper > .screen {
+      grid-area: screen;
     }
-    .settings {
-      grid-area: "settings";
+    .wrapper > .settings {
+      grid-area: settings;
     }
     .settingsClosed .settings {
       display: none;
