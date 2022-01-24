@@ -6,20 +6,16 @@ Spot details through your camera using principal components analysis and decorre
 
 [Online version](https://cedev.github.io/contrastvisor/)
 
-There are 4 modes, which are switched between by swiping the screen in any direction:
+There are 4 modes, which are switched between by swiping across the short side of the screen:
 
  - decorrelation stretch 
  - camera (no processing)
  - camera negative
  - decorrelation stretch of the negative
 
-Tapping the screen takes a picture.
+Double tapping the screen takes a picture.
 
-### Android app
-
-To install the android app find the latest release on github and download the `.apk` file from the assets.
-
-Grant the app permission to use the camera before running it, or it won't be able to see anything.
+Swiping across the long side of the screen opens/closes settings.
 
 ## Math 
 
@@ -38,9 +34,5 @@ Run `npm install` in the root directory to install all dependencies.
 Run `npm run watch` to build and update the javascript bundle.
 
 Open `index.html` in a browser.
-
-## Andriod
-
-Install [android studio](https://developer.android.com/studio/index.html).
 
 Run `npm run watch` to build and update the javascript bundle.

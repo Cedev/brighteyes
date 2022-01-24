@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import AsyncSelect from 'react-select/async';
+import { useErrorHandler } from './errors';
 import { toDictionary } from './prelude';
 
+export const defaultVideoConstraints = {
+  width: { ideal: 4096, max: 4096 },
+  height: { ideal: 4096, max: 4096 }
+};
 
 export function CameraConstraints({ constraints, onChange }) {
 
@@ -24,6 +29,8 @@ export function CameraConstraints({ constraints, onChange }) {
 
 export function CameraSelector({ value, onChange }) {
 
+  const errorHandler = useErrorHandler();
+
   const customStyles = {
     menu: (provided) => {
       var {position, ...noPosition} = provided;
@@ -36,9 +43,8 @@ export function CameraSelector({ value, onChange }) {
   const loadOptions = (inputString) => {
     var options = navigator.mediaDevices.enumerateDevices().then(
       devices => devices.filter(x => x.kind == 'videoinput').map(x => ({ value: x.deviceId, label: x.label || x.deviceId })
-      )).catch(console.error);
-
-    options.then(options => learnOptions(toDictionary(options, o => o.value)));
+      ));
+    errorHandler.wrapPromise(options.then(options => learnOptions(toDictionary(options, o => o.value))));
 
     return options;
   };
