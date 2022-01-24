@@ -1,17 +1,68 @@
 <!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1;viewport-fit=cover"><title>Contrast Visor</title><link rel="manifest" href="manifest.webmanifest"><style>body {
       margin: 0;
     }
-    html, body, #drape, #screen {
+    html, body, #root, .maximal {
       height: 100%;
       width: 100%;
     }
-    #drape {
+    .drape {
       background-color: black;
-    }
-    #screen {
-      touch-action: pinch-zoom;
-      object-fit: contain;
     }
     #settings {
       display: none;
-    }</style><script defer="defer" src="vendors.bundle.js"></script><script defer="defer" src="main.bundle.js"></script></head><body><div id="errors"></div><div id="cedric was here"></div><div id="drape"><canvas id="screen"></canvas></div><div id="settings"><button class="add-button">Add to home screen</button></div><a id="downloader"></a></body></html>
+    }
+    .wrapper {
+      display: grid;
+      grid-template-rows: 100% 0;
+      grid-template-columns: 100%;
+      grid-template-areas: 
+        "screen"
+        "settings"
+    }
+
+    .wrapper.settingsOpen {
+      grid-template-rows: fit-content(40%) minmax(60%, 100%);
+      grid-template-columns: 100%;
+      grid-template-areas: 
+        "settings"
+        "screen"
+    }
+
+    @media (min-aspect-ratio: 1/1) {
+      .wrapper {
+        --cv-horizontal-layout: true;
+      }
+      .wrapper.settingsOpen {
+        grid-template-rows: 100%;
+        grid-template-columns: minmax(60%, 100%) fit-content(40%);
+        grid-template-areas: 
+          "screen settings";
+      }
+    }
+    
+    .wrapper > .screen {
+      grid-area: screen;
+    }
+    .wrapper > .settings {
+      grid-area: settings;
+    }
+    .settingsClosed .settings {
+      display: none;
+    }
+    .settings label {
+      margin: 0.5em;
+      display: block;
+      min-width: 16em;
+    }
+
+    .errorLogEntry {
+      background-color: lightcoral;
+      margin: 0.5em;
+    }
+
+    .errorLogEntry .stackTrace, 
+    .errorLogEntry .details {
+      white-space: pre-wrap;
+      margin: 0.5em;
+      background-color: lightgray;
+    }</style><script defer="defer" src="vendors.bundle.js"></script><script defer="defer" src="main.bundle.js"></script></head><body><div id="settings"><button class="add-button">Add to home screen</button></div><div id="root"></div></body></html>
