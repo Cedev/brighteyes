@@ -6,6 +6,7 @@ export const png = { value: "image/png", label: "PNG", extension: '.png' }
 
 export function ImageFormat({ value, onChange }) {
   return <Select
+    isSearchable={false}
     value={value}
     options={[jpg, png]}
     onChange={onChange}

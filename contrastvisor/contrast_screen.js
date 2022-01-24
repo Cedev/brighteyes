@@ -13,6 +13,7 @@ import {
 import { Camera } from './camera.js';
 import { StatSampler } from './stat_sampler.js';
 import { Screen } from './screen.js';
+import { useErrorHandler } from "./errors.js";
 
 const nsamples = 1000;
 
@@ -39,6 +40,8 @@ function oncePerTimestamp(f) {
 
 export function ContrastScreen(props) {
 
+  const errorHandler = useErrorHandler();
+
   const propsRef = useRef();
   propsRef.current = props;
 
@@ -48,14 +51,14 @@ export function ContrastScreen(props) {
   const renderFrame = useRef();
   const nextFrame = useRef();
 
-  const canvasRef = useCallback(node => {
+  const canvasRef = useCallback(errorHandler.wrap(node => {
     canvas.current = node;
 
     // Initialize canvas, 
     const gl = node.getContext('webgl2');
     twgl.addExtensionsToContext(gl);
     if (!gl.getExtension('EXT_float_blend')) {
-      reportError("Could not get WebGL extenstion EXT_float_blend")
+      errorHandler.onError(Error("Could not get WebGL extenstion EXT_float_blend"));
     }
 
     const texture = twgl.createTexture(gl, {
@@ -140,11 +143,11 @@ export function ContrastScreen(props) {
     }
     renderOnce = oncePerTimestamp(render);
     renderFrame.current = renderOnce;
-  }, []);
+  }), []);
 
   function requestFrame() {
     if (renderFrame.current) {
-      window.requestAnimationFrame(renderFrame.current);
+      window.requestAnimationFrame(errorHandler.wrap(renderFrame.current));
     }
   }
 

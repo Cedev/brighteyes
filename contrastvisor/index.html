@@ -28,7 +28,7 @@
     }
 
     .wrapper.settingsOpen {
-      grid-template-rows: 50% 50%;
+      grid-template-rows: fit-content(40%) minmax(60%, 100%);
       grid-template-columns: 100%;
       grid-template-areas: 
         "settings"
@@ -41,7 +41,7 @@
       }
       .wrapper.settingsOpen {
         grid-template-rows: 100%;
-        grid-template-columns: 1fr fit-content(50%);
+        grid-template-columns: minmax(60%, 100%) fit-content(40%);
         grid-template-areas: 
           "screen settings";
       }
@@ -56,13 +56,27 @@
     .settingsClosed .settings {
       display: none;
     }
+    .settings label {
+      margin: 0.5em;
+      display: block;
+      min-width: 16em;
+    }
+
+    .errorLogEntry {
+      background-color: lightcoral;
+      margin: 0.5em;
+    }
+
+    .errorLogEntry .stackTrace, 
+    .errorLogEntry .details {
+      white-space: pre-wrap;
+      margin: 0.5em;
+      background-color: lightgray;
+    }
   </style>
 </head>
 
 <body>
-
-<div id="errors">
-</div>
 
 <div id="settings">
   <button class="add-button">Add to home screen</button>
@@ -71,8 +85,6 @@
 <div id="root">
 
 </div>
-
-<a id="downloader"></a>
 
 </body>
 </html>

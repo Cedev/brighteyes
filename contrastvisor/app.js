@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from "react";
 import { mat4 } from 'gl-matrix';
 import Hammer from 'hammerjs';
-import { CameraConstraints } from "./camera_constraints.js";
+import { CameraConstraints, defaultVideoConstraints } from "./camera_constraints.js";
 import { ContrastScreen } from "./contrast_screen.js";  
+import { OverlayErrorLog, ErrorBoundary, ScopeErrors, useErrorHandler, ErrorLogContext, ErrorLog } from "./errors.js";
 import { pinchZoom } from './zoom.js';
 import { useLocalStorageState, useSignal } from "./hooks.js";
 import { ImageFormat, png } from "./settings.js";
@@ -29,21 +30,20 @@ const nextMode = mode => (mode + 1) % modes.length;
 
 const prevMode = mode => (mode + modes.length - 1) % modes.length;
 
-function unFuck(setState) {
+function setFunction(setState) {
   return newState => setState(() => newState);
 }
 
-export function App({filePrefix="Contrast Visor capture"}) {
+export function ContrastVisor({filePrefix="Contrast Visor capture"}) {
+
+  const errorHandler = useErrorHandler();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mode, setMode] = useState(0);
   const [projection, setProjection] = useState();
   const [videoConstraints, setVideoConstraints] = useLocalStorageState(
     'contrast-visor.settings.videoConstraints',
-    {
-    width: { ideal: 4096, max: 4096 },
-    height: { ideal: 4096, max: 4096 }
-  });
+    defaultVideoConstraints);
   const [imageFormat, setImageFormat] = useLocalStorageState(
     'contrast-visor.settings.imageFormat',
     png);
@@ -85,12 +85,16 @@ export function App({filePrefix="Contrast Visor capture"}) {
     byLayout('swipeleft', 'swipedown', () => setSettingsOpen(true), () => setMode(nextMode));
     byLayout('swiperight', 'swipeup', () => setSettingsOpen(false), () => setMode(prevMode));
 
-    pinchZoom(screen, mc, unFuck(setProjection));
+    pinchZoom(screen, mc, setFunction(setProjection));
   }, []);
 
   return <div className={className}>
-    <div ref={screenRef} className="screen maximal">
-      <ContrastScreen videoConstraints={videoConstraints} projection={projection} {...currentMode} captureSignal={captureSignal} />
+    <div ref={screenRef} className="screen maximal" style={{position: 'relative'}}>
+      <OverlayErrorLog chainErrorHandler={errorHandler}>
+        <ErrorBoundary>
+          <ContrastScreen videoConstraints={videoConstraints} projection={projection} {...currentMode} captureSignal={captureSignal} />
+        </ErrorBoundary>
+      </OverlayErrorLog>
     </div>
     <div className="settings">
       <CameraConstraints constraints={videoConstraints} onChange={setVideoConstraints} />
@@ -99,6 +103,20 @@ export function App({filePrefix="Contrast Visor capture"}) {
         Image format:
         <ImageFormat value={imageFormat} onChange={setImageFormat} />
       </label>
+
+      <ErrorLogContext.Consumer>
+        {errors => <ErrorLog errors={errors}/>}
+      </ErrorLogContext.Consumer>
     </div>
   </div>
+}
+
+export function App(props) {
+  var errorHandler = useErrorHandler();
+  
+  return <ErrorBoundary>
+    <ScopeErrors chainErrorHandler={errorHandler}>
+      <ContrastVisor {...props} />
+    </ScopeErrors>
+  </ErrorBoundary>
 }

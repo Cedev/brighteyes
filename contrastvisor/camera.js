@@ -1,5 +1,6 @@
-import React, { useCallback, useRef, useState, } from 'react';
+import React, { useCallback, useEffect, useRef, useState, } from 'react';
 import { useDeepCompareEffectNoCheck } from 'use-deep-compare-effect'
+import { useErrorHandler } from './errors.js';
 import { FastForwardSerializer } from './promises.js'
 
 
@@ -20,20 +21,24 @@ export function Camera({ constraints, onFrame }) {
   frameHandler.current = onFrame;
   const [streamManager] = useState(FastForwardSerializer);
 
+  const errorHandler = useErrorHandler();
+  const errorHandlerRef = useRef();
+  errorHandlerRef.current = errorHandler;
+
   useDeepCompareEffectNoCheck(() => {
-    streamManager(() => 
+    streamManager(() =>
       // Start a new stream
-      navigator.mediaDevices.getUserMedia(constraints).catch(console.error).then(stream => {
+      errorHandler.wrapPromise(navigator.mediaDevices.getUserMedia(constraints).then(stream => {
         camera.current.srcObject = stream;
-        return () => stopStream(stream);
-      })
+        return errorHandler.wrap(() => stopStream(stream));
+      }))
     );
-  }, [constraints]);
+  }, [constraints, errorHandler]);
 
   // Start watching the camera
   const camRef = useCallback(node => {
     camera.current = node;
-    
+
     function videoFrameCallback(now, frame) {
       if (camera.current != node) {
         return;
@@ -43,7 +48,7 @@ export function Camera({ constraints, onFrame }) {
           frameHandler.current(now, frame, node);
         }
       } catch (error) {
-        console.error(error);
+        errorHandlerRef.current.onError(error);
       }
       watch();
     }
