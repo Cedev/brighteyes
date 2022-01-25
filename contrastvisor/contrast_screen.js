@@ -56,9 +56,12 @@ export function ContrastScreen(props) {
 
     // Initialize canvas, 
     const gl = node.getContext('webgl2');
+    if(!gl) {
+      throw Error("Could not get webgl2 context")
+    }
     twgl.addExtensionsToContext(gl);
-    if (!gl.getExtension('EXT_float_blend')) {
-      errorHandler.onError(Error("Could not get WebGL extenstion EXT_float_blend"));
+    if (!gl.getExtension('EXT_color_buffer_float')) {
+      errorHandler.onError(Error("Could not get WebGL extenstion EXT_color_buffer_float"));
     }
 
     const texture = twgl.createTexture(gl, {
