@@ -1,6 +1,6 @@
 {
   "name": "contrastvisor",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Spot details through your camera using principal components analysis and decorrelation stretch",
   "main": "index.js",
   "scripts": {

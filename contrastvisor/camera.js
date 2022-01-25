@@ -42,6 +42,7 @@ export function Camera({ constraints, onFrame }) {
     }
     camera.current = node;
 
+    var watch;
     function videoFrameCallback(now, frame) {
       if (camera.current != node) {
         return;
@@ -55,9 +56,11 @@ export function Camera({ constraints, onFrame }) {
       }
       watch();
     }
-
-    function watch() {
-      node.requestVideoFrameCallback(videoFrameCallback);
+    
+    if (node.requestVideoFrameCallback) {
+      watch = () => node.requestVideoFrameCallback(videoFrameCallback);
+    } else {
+      watch = () => window.requestAnimationFrame(now => videoFrameCallback(now, {width: node.videoWidth, height: node.videoHeight}));
     }
     watch();
   }, []);
