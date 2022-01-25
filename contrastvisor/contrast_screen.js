@@ -61,7 +61,9 @@ export function ContrastScreen(props) {
     }
     twgl.addExtensionsToContext(gl);
     if (!gl.getExtension('EXT_color_buffer_float')) {
-      errorHandler.onError(Error("Could not get WebGL extenstion EXT_color_buffer_float"));
+      if (!gl.getExtension('EXT_color_buffer_half_float')) {
+        errorHandler.onError(Error("Could not get WebGL extenstion EXT_color_buffer_float or EXT_color_buffer_half_float"));
+      }
     }
 
     const texture = twgl.createTexture(gl, {
