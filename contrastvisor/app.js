@@ -61,6 +61,9 @@ export function ContrastVisor({filePrefix="Contrast Visor capture"}) {
   }, [imageFormat, filePrefix]);
 
   const screenRef = useCallback(screen => {
+    if (screen == null) {
+      return;
+    }
     // Set event handlers on the screen
     var mc = new Hammer.Manager(screen, {
       recognizers: [

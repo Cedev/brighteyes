@@ -52,6 +52,9 @@ export function ContrastScreen(props) {
   const nextFrame = useRef();
 
   const canvasRef = useCallback(errorHandler.wrap(node => {
+    if (node == null) {
+      return;
+    }
     canvas.current = node;
 
     // Initialize canvas, 

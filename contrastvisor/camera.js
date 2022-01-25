@@ -37,6 +37,9 @@ export function Camera({ constraints, onFrame }) {
 
   // Start watching the camera
   const camRef = useCallback(node => {
+    if (node == null) {
+      return;
+    }
     camera.current = node;
 
     function videoFrameCallback(now, frame) {
