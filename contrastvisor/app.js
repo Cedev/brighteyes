@@ -97,6 +97,7 @@ export function ContrastVisor({filePrefix="Contrast Visor capture"}) {
       </OverlayErrorLog>
     </div>
     <div className="settings">
+      <h1>Contrast Visor <span className="versionNumber">{VERSION}</span></h1>
       <CameraConstraints constraints={videoConstraints} onChange={setVideoConstraints} />
 
       <label>

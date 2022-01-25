@@ -1,6 +1,8 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
+const webpack = require('webpack');
+const package = require('./package.json');
 
 module.exports = {
   mode: 'development',
@@ -22,6 +24,9 @@ module.exports = {
       clientsClaim: true,
       skipWaiting: true,
     }),
+    new webpack.DefinePlugin({
+      VERSION: JSON.stringify(package.version)
+    })
   ],
   module: {
     rules: [
