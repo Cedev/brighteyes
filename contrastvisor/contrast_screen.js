@@ -60,8 +60,11 @@ export function ContrastScreen(props) {
       throw Error("Could not get webgl2 context")
     }
     twgl.addExtensionsToContext(gl);
+    var bitDepth = 32;
     if (!gl.getExtension('EXT_color_buffer_float')) {
-      if (!gl.getExtension('EXT_color_buffer_half_float')) {
+      if (gl.getExtension('EXT_color_buffer_half_float')) {
+        bitDepth = 16
+      } else {
         errorHandler.onError(Error("Could not get WebGL extenstion EXT_color_buffer_float or EXT_color_buffer_half_float"));
       }
     }
@@ -79,8 +82,10 @@ export function ContrastScreen(props) {
 
     var seenCamera = false;
 
-    const statSampler = new StatSampler(gl, nsamples);
+    const statSampler = new StatSampler(gl, nsamples, bitDepth);
     const screen = new Screen(gl);
+
+    var lastDecorTransformation = mat4.create();
 
     var renderOnce = undefined;
     function render(now) {
@@ -117,6 +122,7 @@ export function ContrastScreen(props) {
       }
 
       var colorTransformation = mat4.create();
+      var decorTransformation = mat4.create();
       if (seenCamera) {
         if (decor) {
           var pixels = statSampler.sample(texture, sampleMatrix);
@@ -124,11 +130,21 @@ export function ContrastScreen(props) {
           var cov = sumsToCov(sums);
           var means = vec3.fromValues(sums(0, 3) / sums(3, 3), sums(1, 3) / sums(3, 3), sums(2, 3) / sums(3, 3))
 
-          colorTransformation = decorStretcher(cov, means, decor);
+          decorTransformation = decorStretcher(cov, means, decor);
+
+          if (decorTransformation.some(isNaN)) {
+            // Eigen decomposition was not positive semi-definite
+            // Re-use the last successful decorrelation
+            decorTransformation = lastDecorTransformation;
+          } else {
+            lastDecorTransformation = decorTransformation;
+          }
         }
 
         if (post) {
-          mat4.multiply(colorTransformation, post, colorTransformation);
+          mat4.multiply(colorTransformation, post, decorTransformation);
+        } else {
+          colorTransformation = decorTransformation;
         }
       }
 

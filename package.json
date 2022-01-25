@@ -13,6 +13,7 @@
   "author": "Cedric Shock",
   "license": "MIT",
   "dependencies": {
+    "@petamoriken/float16": "^3.6.1",
     "file-saver": "^2.0.5",
     "gl-matrix": "^3.3.0",
     "hammerjs": "^2.0.8",

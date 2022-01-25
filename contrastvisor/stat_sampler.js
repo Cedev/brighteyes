@@ -1,3 +1,4 @@
+import { Float16Array } from '@petamoriken/float16';
 import * as twgl  from 'twgl.js';
 import { range } from './prelude.js'
 
@@ -44,12 +45,32 @@ const channels = [
   [0, 0, 0, 1]
 ].map(x => new Float32Array(x))
 
+
+function floatType(gl, bitDepth) {
+  if (bitDepth == 16) {
+    return {
+      type: gl.HALF_FLOAT,
+      internalFormat: gl.RGBA16F,
+      arrayType: (length) => new Uint16Array(length),
+      view: uint16 => new Float16Array(uint16.buffer)
+    }
+  }
+  return {
+    type: gl.FLOAT,
+    internalFormat: gl.RGBA32F,
+    arrayType: (length) => new Float32Array(length),
+    view: float32 => float32
+  }  
+}
+
 export class StatSampler {
   // Sums up the outer product of pixels with themselves
 
-  constructor(gl, nsamples) {
+  constructor(gl, nsamples, bitDepth=32) {
     this.gl = gl;
     this.nsamples = nsamples;
+
+    this.floatType = floatType(gl, bitDepth);
 
     this.program = twgl.createProgramInfo(gl, [vertexShader, fragmentShader]);
     this.buffers = twgl.createBufferInfoFromArrays(gl, {
@@ -62,9 +83,9 @@ export class StatSampler {
     });
 
     this.fb = twgl.createFramebufferInfo(gl, [
-      { type: gl.FLOAT,
+      { type: this.floatType.type,
         format: gl.RGBA,
-        internalFormat: gl.RGBA32F,
+        internalFormat: this.floatType.internalFormat,
         min: gl.NEAREST,
         mag: gl.NEAREST,
         wrap: gl.CLAMP_TO_EDGE
@@ -101,14 +122,14 @@ export class StatSampler {
       gl.drawElements(gl.POINTS, this.nsamples, gl.UNSIGNED_SHORT, 0);
     }
     
-    var pixels = new Float32Array(4 * 1 * 4);
+    var pixels = this.floatType.arrayType(4 * 1 * 4);
     gl.readBuffer(gl.COLOR_ATTACHMENT0);
-    gl.readPixels(0, 0, 4, 1, gl.RGBA, gl.FLOAT, pixels);
+    gl.readPixels(0, 0, 4, 1, gl.RGBA, this.floatType.type, pixels);
     
     gl.blendFunc(gl.ONE, gl.ZERO);
     gl.disable(gl.BLEND);
     
-    return pixels;
+    return this.floatType.view(pixels);
   }
 
 }
