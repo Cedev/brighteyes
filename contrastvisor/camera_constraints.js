@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import AsyncSelect from 'react-select/async';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import Select from 'react-select';
 import { useErrorHandler } from './errors';
-import { toDictionary } from './prelude';
+import { id, toDictionary } from './prelude';
 
 export const defaultVideoConstraints = {
   width: { ideal: 4096, max: 4096 },
@@ -29,33 +29,64 @@ export function CameraConstraints({ constraints, onChange }) {
 
 export function CameraSelector({ value, onChange }) {
 
-  const errorHandler = useErrorHandler();
-
   const customStyles = {
     menu: (provided) => {
-      var {position, ...noPosition} = provided;
+      var { position, ...noPosition } = provided;
       return noPosition;
     }
   }
 
-  const [knownOptions, learnOptions] = useState({});
+  const loadOptions = useCallback((inputString) =>
+    navigator.mediaDevices.enumerateDevices()
+      .then(devices => devices
+        .filter(x => x.kind == 'videoinput')
+        .map(x => ({ value: x.deviceId, label: x.label || x.deviceId })
+        )), []);
 
-  const loadOptions = (inputString) => {
-    var options = navigator.mediaDevices.enumerateDevices().then(
-      devices => devices.filter(x => x.kind == 'videoinput').map(x => ({ value: x.deviceId, label: x.label || x.deviceId })
-      ));
-    errorHandler.wrapPromise(options.then(options => learnOptions(toDictionary(options, o => o.value))));
-
-    return options;
-  };
-
-  return <AsyncSelect
+  return <AsyncValueSelect
     isSearchable={false}
     isClearable
     loadOptions={loadOptions}
-    defaultOptions
-    value={{ value: value, label: value ? knownOptions[value]?.label : "Any" }}
-    onChange={newValue => onChange(newValue?.value)}
+    value={value}
+    defaultLabel={value?.toString() || "Any"}
+    onChange={onChange}
     styles={customStyles}
+  />
+}
+
+function AsyncValueSelect({ loadOptions, ...props }) {
+
+  const errorHandler = useErrorHandler();
+  const [options, setOptions] = useState([])
+  const [loading, setLoading] = useState(0);
+
+  const doLoadOptions = useCallback(
+    () => {
+      setLoading(x => x + 1);
+      errorHandler.wrapPromise(errorHandler.wrap(loadOptions)().then(setOptions).finally(() => setLoading(x => x - 1)));
+    }
+    , [loadOptions, errorHandler]);
+
+  useEffect(doLoadOptions, [loadOptions]);
+
+  return <ValueSelect
+    options={options}
+    onMenuOpen={doLoadOptions}
+    isLoading={loading}
+    {...props}
+  />
+}
+
+function ValueSelect({ value, options, defaultLabel, onChange, ...props }) {
+
+  const optionLookup = useMemo(
+    () => toDictionary(options, o => o.value)
+    , [options]);
+
+  return <Select
+    options={options}
+    value={optionLookup[value] || { value: value, label: defaultLabel }}
+    {...props}
+    onChange={value => onChange(value?.value)}
   />
 }
