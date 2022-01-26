@@ -2,11 +2,12 @@ import React, { useCallback, useState } from "react";
 import { mat4 } from 'gl-matrix';
 import Hammer from 'hammerjs';
 import { CameraSettings, videoConstraints } from "./camera_constraints.js";
-import { ContrastScreen } from "./contrast_screen.js";  
+import { ContrastScreen } from "./contrast_screen.js";
 import { OverlayErrorLog, ErrorBoundary, ScopeErrors, useErrorHandler, ErrorLogContext, ErrorLog } from "./errors.js";
 import { pinchZoom } from './zoom.js';
 import { useLocalStorageState, useSignal } from "./hooks.js";
-import { ImageFormat, png } from "./settings.js";
+import { DebugSettings, ImageFormat, png } from "./settings.js";
+import classNames from "classnames";
 
 const negative = mat4.fromValues(
   -1, 0, 0, 0,
@@ -34,23 +35,22 @@ function setFunction(setState) {
   return newState => setState(() => newState);
 }
 
-export function ContrastVisor({filePrefix="Contrast Visor capture"}) {
-
-  const errorHandler = useErrorHandler();
+export function ContrastVisor({ filePrefix = "Contrast Visor capture" }) {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mode, setMode] = useState(0);
-  const [projection, setProjection] = useState();  
+  const [projection, setProjection] = useState();
   const [cameraSettings, setCameraSettings] = useLocalStorageState(
     'contrast-visor.settings.camera', {});
   const [imageFormat, setImageFormat] = useLocalStorageState(
     'contrast-visor.settings.imageFormat',
     png);
   const [captureSignal, setCaptureSignal] = useSignal();
+  const [debugSettings, setDebugSettings] = useState();
 
   const cameraConstraints = videoConstraints(cameraSettings);
 
-  var className = "wrapper maximal " + (settingsOpen ? "settingsOpen" : "settingsClosed");
+  var className = classNames("wrapper", "maximal", { settingsOpen: settingsOpen, debugDisplayCamera: debugSettings?.displayCamera });
 
   const currentMode = modes[mode % modes.length];
 
@@ -58,7 +58,8 @@ export function ContrastVisor({filePrefix="Contrast Visor capture"}) {
   current.tap = useCallback(() => {
     setCaptureSignal({
       type: imageFormat.value,
-      fileName: filePrefix + ' ' + new Date().toJSON().replace('T', ' ').replaceAll(':', '.') + imageFormat.extension});
+      fileName: filePrefix + ' ' + new Date().toJSON().replace('T', ' ').replaceAll(':', '.') + imageFormat.extension
+    });
   }, [imageFormat, filePrefix]);
 
   const screenRef = useCallback(screen => {
@@ -93,32 +94,34 @@ export function ContrastVisor({filePrefix="Contrast Visor capture"}) {
   }, []);
 
   return <div className={className}>
-    <div ref={screenRef} className="screen maximal" style={{position: 'relative'}}>
-      <OverlayErrorLog chainErrorHandler={errorHandler}>
-        <ErrorBoundary>
-          <ContrastScreen videoConstraints={cameraConstraints} projection={projection} {...currentMode} captureSignal={captureSignal} />
-        </ErrorBoundary>
-      </OverlayErrorLog>
+    <div ref={screenRef} className="screen maximal" style={{ position: 'relative' }}>
+      <ErrorBoundary>
+        <ContrastScreen videoConstraints={cameraConstraints} projection={projection} {...currentMode} captureSignal={captureSignal} />
+      </ErrorBoundary>
     </div>
-    <div className="settings">
-      <h1>Contrast Visor <span className="versionNumber">{VERSION}</span></h1>
-      <CameraSettings settings={cameraSettings} onChange={setCameraSettings} />
+    <div className="panel">
+      <div className="settings">
+        <h1>Contrast Visor <span className="versionNumber">{VERSION}</span></h1>
+        <CameraSettings settings={cameraSettings} onChange={setCameraSettings} />
 
-      <label>
-        Image format:
-        <ImageFormat value={imageFormat} onChange={setImageFormat} />
-      </label>
+        <label>
+          Image format:
+          <ImageFormat value={imageFormat} onChange={setImageFormat} />
+        </label>
 
-      <ErrorLogContext.Consumer>
-        {errors => <ErrorLog errors={errors}/>}
-      </ErrorLogContext.Consumer>
+        <DebugSettings value={debugSettings} onChange={setDebugSettings} />
+
+        <ErrorLogContext.Consumer>
+          {errors => <ErrorLog errors={errors} />}
+        </ErrorLogContext.Consumer>
+      </div>
     </div>
   </div>
 }
 
 export function App(props) {
   var errorHandler = useErrorHandler();
-  
+
   return <ErrorBoundary>
     <ScopeErrors chainErrorHandler={errorHandler}>
       <ContrastVisor {...props} />

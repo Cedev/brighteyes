@@ -46,7 +46,7 @@ export function CameraSettings({ settings, onChange }) {
         <ResolutionSelector value={width} onChange={changeWidth} />
       </section>
       <section className="labelLike">
-        <legend>Height</legend>
+        <h6>Height:</h6>
         <ResolutionSelector value={height} onChange={changeHeight} />
       </section>
     </section>

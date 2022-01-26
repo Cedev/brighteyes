@@ -187,7 +187,7 @@ export function ContrastScreen(props) {
   }
 
   return <>
-    <canvas ref={canvasRef} className="maximal" style={{objectFit: 'contain'}} />
+    <canvas ref={canvasRef} className="contrast maximal" />
     <Camera constraints={{
       audio: false,
       video: videoConstraints,

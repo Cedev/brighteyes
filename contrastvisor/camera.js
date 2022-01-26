@@ -65,5 +65,5 @@ export function Camera({ constraints, onFrame }) {
     watch();
   }, []);
 
-  return <video ref={camRef} playsInline autoPlay style={{ display: 'none' }}></video>
+  return <video ref={camRef} playsInline autoPlay className="camera" />
 }
