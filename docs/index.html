@@ -195,19 +195,24 @@
       object-fit: contain;
     }
 
-    .camera {
-      display: block;
-      transform: scale(0);
-    }
-
-    /* Debugging styles */
-    .debugDisplayCamera .contrast {
-      display: none;
+    .screen {
+      position: relative;
     }
     
-    .debugDisplayCamera .camera {
-      transform: unset;
-      object-fit: contain;
+    .camera {
+      display: none;
+    }
+
+    .displayCamera .camera,
+    .renderCamera .camera
+    {
+      display: block;
       width: 100%;
       height: 100%;
+      position: absolute;
+      top: 0;
+    }
+
+    .renderCamera:not(.displayCamera) .camera {
+      z-index: -1;
     }</style><script defer="defer" src="vendors.bundle.js"></script><script defer="defer" src="main.bundle.js"></script></head><body><div id="settings"><button class="add-button">Add to home screen</button></div><div id="root"></div></body></html>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Children } from "react";
 import Select from 'react-select';
 import Toggle from 'react-toggle'
 import "react-toggle/style.css"
@@ -18,6 +18,15 @@ export function ImageFormat({ value, onChange }) {
 }
 
 
+export function ToggleSetting({children, value, onChange}) { 
+  return <label className="inline">
+    {children}
+    <Toggle
+      checked={!!value}
+      onChange={e => onChange(e.target.checked)} />
+    </label>
+}
+
 
 export function DebugSettings({ value, onChange }) {
 
@@ -25,16 +34,10 @@ export function DebugSettings({ value, onChange }) {
 
   const [showCamera, setShowCamera] = useLens(lenses.displayCamera, value, onChange);
 
-
   return <details className="debugSettings fieldSetLike">
     <summary>Debug settings:</summary>
     <div>
-      <label className="inline">
-        Show camera:
-        <Toggle
-          checked={!!showCamera}
-          onChange={e => setShowCamera(e.target.checked)} />
-      </label>
+      <ToggleSetting value={showCamera} onChange={setShowCamera}>Show camera:</ToggleSetting>
     </div>
   </details>
 }

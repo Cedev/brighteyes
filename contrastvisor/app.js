@@ -6,7 +6,7 @@ import { ContrastScreen } from "./contrast_screen.js";
 import { OverlayErrorLog, ErrorBoundary, ScopeErrors, useErrorHandler, ErrorLogContext, ErrorLog } from "./errors.js";
 import { pinchZoom } from './zoom.js';
 import { useLocalStorageState, useSignal } from "./hooks.js";
-import { DebugSettings, ImageFormat, png } from "./settings.js";
+import { DebugSettings, ImageFormat, png, ToggleSetting } from "./settings.js";
 import classNames from "classnames";
 
 const negative = mat4.fromValues(
@@ -45,12 +45,15 @@ export function ContrastVisor({ filePrefix = "Contrast Visor capture" }) {
   const [imageFormat, setImageFormat] = useLocalStorageState(
     'contrast-visor.settings.imageFormat',
     png);
+  const [renderCamera, setRenderCamera] = useLocalStorageState(
+    'contrast-visor.settings.renderCamera',
+    false);
   const [captureSignal, setCaptureSignal] = useSignal();
   const [debugSettings, setDebugSettings] = useState();
 
   const cameraConstraints = videoConstraints(cameraSettings);
 
-  var className = classNames("wrapper", "maximal", { settingsOpen: settingsOpen, debugDisplayCamera: debugSettings?.displayCamera });
+  var className = classNames("wrapper", "maximal", { settingsOpen: settingsOpen });
 
   const currentMode = modes[mode % modes.length];
 
@@ -94,7 +97,7 @@ export function ContrastVisor({ filePrefix = "Contrast Visor capture" }) {
   }, []);
 
   return <div className={className}>
-    <div ref={screenRef} className="screen maximal" style={{ position: 'relative' }}>
+    <div ref={screenRef} className={classNames("screen", "maximal", {displayCamera: debugSettings?.displayCamera, renderCamera: renderCamera})}>
       <ErrorBoundary>
         <ContrastScreen videoConstraints={cameraConstraints} projection={projection} {...currentMode} captureSignal={captureSignal} />
       </ErrorBoundary>
@@ -108,6 +111,10 @@ export function ContrastVisor({ filePrefix = "Contrast Visor capture" }) {
           Image format:
           <ImageFormat value={imageFormat} onChange={setImageFormat} />
         </label>
+
+        <ToggleSetting value={renderCamera} onChange={setRenderCamera}>
+          Render camera (iOS):
+        </ToggleSetting>
 
         <DebugSettings value={debugSettings} onChange={setDebugSettings} />
 
