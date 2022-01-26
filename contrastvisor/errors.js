@@ -125,7 +125,7 @@ export function OverlayErrorLog({ children, chainErrorHandler }) {
 
 export function ErrorLog({ errors }) {
   return <div className="errorLog">
-    {errors.map(error => <ErrorDisplay error={error} />)}
+    {errors.map(error => <ErrorDisplay error={error} key={error} />)}
   </div>
 }
 

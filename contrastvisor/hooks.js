@@ -1,5 +1,7 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useErrorHandler } from "./errors";
+import { LensProxy, over, get } from "./lens";
+import { functionOrConstant } from "./prelude";
 
 
 export function useSignal() {
@@ -7,7 +9,7 @@ export function useSignal() {
   const [state, setState] = useState();
 
   const setSignal = useCallback(signal => {
-    setState({set: true, signal: signal});
+    setState({ set: true, signal: signal });
   });
 
   const takeSignal = useCallback(() => {
@@ -23,12 +25,6 @@ export function useSignal() {
   return [takeSignal, setSignal];
 }
 
-function apIfFunction(f, ...args) {
-  if (f instanceof Function) {
-    return f(...args);
-  }
-  return f
-}
 
 function readLocalStorage(key, initial, errorHandler) {
   try {
@@ -39,7 +35,7 @@ function readLocalStorage(key, initial, errorHandler) {
   } catch (error) {
     errorHandler.onError(error);
   }
-  return apIfFunction(initial);
+  return functionOrConstant(initial)();
 }
 
 function writeLocalStorage(key, value, errorHandler) {
@@ -59,11 +55,24 @@ export function useLocalStorageState(key, initial) {
 
   const saveState = useCallback(f => {
     setState(oldState => {
-      const newState = apIfFunction(f, oldState);
+      const newState = functionOrConstant(f)(oldState);
       writeLocalStorage(key, newState, errorHandler);
       return newState;
     })
   }, [errorHandler]);
 
   return [state, saveState];
+}
+
+
+export function useLenses() {
+  return useMemo(LensProxy);
+}
+
+export function useLens(lens, valueS, setS) {
+
+  const setA = useCallback(fa => setS(over(functionOrConstant(fa))(lens)), [lens, setS]);
+  const valueA = get(lens)(valueS);
+
+  return [valueA, setA];
 }

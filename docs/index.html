@@ -1,4 +1,13 @@
-<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1;viewport-fit=cover"><title>Contrast Visor</title><link rel="manifest" href="manifest.webmanifest"><style>body {
+<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1;viewport-fit=cover"><title>Contrast Visor</title><link rel="manifest" href="manifest.webmanifest"><style>:root {
+      line-height: 1.15;
+      background: #333;
+      color: white;
+      --contrast-visor-gap: 0.5em;
+      --contrast-visor-border: 2px;
+      --contrast-visor-settings-background: #333;
+    }
+
+    body {
       margin: 0;
       font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
     }
@@ -50,30 +59,96 @@
     .settingsClosed .settings {
       display: none;
     }
-    .settings label {
-      margin: 0.5em;
-      display: block;
-      min-width: 16em;
+
+    .errorLog {
+      display: flex;
+      flex-direction: column;
+      row-gap: var(--contrast-visor-gap);
     }
 
     .errorLogEntry {
+      color: black;
       background-color: lightcoral;
-      margin: 0.5em;
+      font-family: "Lucida Console", monospace;
+    }
+
+    .errorLogEntry[open] {
+      padding-bottom: var(--contrast-visor-gap);
     }
 
     .errorLogEntry .stackTrace, 
     .errorLogEntry .details {
       white-space: pre-wrap;
-      margin: 0.5em;
+      margin: var(--contrast-visor-gap);
+      margin-bottom: 0;
       background-color: lightgray;
     }
 
-    h1 {
+    .settings {
+      padding: 0 var(--contrast-visor-gap);
+      display: flex;
+      flex-direction: column;
+      row-gap: var(--contrast-visor-gap);
+      background: var(--contrast-visor-settings-background);
+    }
+    
+    .settings label {
+      display: block;
+    }
+
+    .settings .fieldSetLike {
+      border-width: var(--contrast-visor-border);
+      border-style: groove;
+      padding: calc(var(--contrast-visor-gap) - var(--contrast-visor-border));
+      margin-top: var(--contrast-visor-gap);
+      display: flex;
+      flex-direction: column;
+      row-gap: var(--contrast-visor-gap);
+    }
+
+    .settings .fieldSetLike > h6 {
+      margin-top: calc(-2*var(--contrast-visor-gap));
+      background: var(--contrast-visor-settings-background);
+      width: fit-content;
+      margin-bottom: calc(-1*var(--contrast-visor-gap));
+    }
+
+    .settings h1 {
       font-size: medium;
       text-align: center;
-      margin: 0.5em;
+      min-width: 16em;
+      margin-top: var(--contrast-visor-gap);
+      margin-bottom: calc(-0.15em - var(--contrast-visor-gap));
     }
 
     h1 .versionNumber {
       font-weight: lighter;
+    }
+
+    .settings h6 {
+      font-weight: normal;
+      margin: 0;
+      font-size: medium;
+    }
+
+    .resolutionSelector {
+      display: flex;
+      align-items: center;
+      column-gap: var(--contrast-visor-gap);
+    }
+
+    .resolutionSelector .resolution {
+      flex-grow: 1;
+    }
+
+    .toggleSymbol {
+      height: 100%;
+      display: inline-flex;
+      align-items: center;
+      font-weight: bold;
+      color: white;
+    }
+
+    .reactSelect {
+      color: black;
     }</style><script defer="defer" src="vendors.bundle.js"></script><script defer="defer" src="main.bundle.js"></script></head><body><div id="settings"><button class="add-button">Add to home screen</button></div><div id="root"></div></body></html>

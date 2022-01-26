@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { mat4 } from 'gl-matrix';
 import Hammer from 'hammerjs';
-import { CameraConstraints, defaultVideoConstraints } from "./camera_constraints.js";
+import { CameraSettings, videoConstraints } from "./camera_constraints.js";
 import { ContrastScreen } from "./contrast_screen.js";  
 import { OverlayErrorLog, ErrorBoundary, ScopeErrors, useErrorHandler, ErrorLogContext, ErrorLog } from "./errors.js";
 import { pinchZoom } from './zoom.js';
@@ -40,14 +40,15 @@ export function ContrastVisor({filePrefix="Contrast Visor capture"}) {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mode, setMode] = useState(0);
-  const [projection, setProjection] = useState();
-  const [videoConstraints, setVideoConstraints] = useLocalStorageState(
-    'contrast-visor.settings.videoConstraints',
-    defaultVideoConstraints);
+  const [projection, setProjection] = useState();  
+  const [cameraSettings, setCameraSettings] = useLocalStorageState(
+    'contrast-visor.settings.camera', {});
   const [imageFormat, setImageFormat] = useLocalStorageState(
     'contrast-visor.settings.imageFormat',
     png);
   const [captureSignal, setCaptureSignal] = useSignal();
+
+  const cameraConstraints = videoConstraints(cameraSettings);
 
   var className = "wrapper maximal " + (settingsOpen ? "settingsOpen" : "settingsClosed");
 
@@ -95,13 +96,13 @@ export function ContrastVisor({filePrefix="Contrast Visor capture"}) {
     <div ref={screenRef} className="screen maximal" style={{position: 'relative'}}>
       <OverlayErrorLog chainErrorHandler={errorHandler}>
         <ErrorBoundary>
-          <ContrastScreen videoConstraints={videoConstraints} projection={projection} {...currentMode} captureSignal={captureSignal} />
+          <ContrastScreen videoConstraints={cameraConstraints} projection={projection} {...currentMode} captureSignal={captureSignal} />
         </ErrorBoundary>
       </OverlayErrorLog>
     </div>
     <div className="settings">
       <h1>Contrast Visor <span className="versionNumber">{VERSION}</span></h1>
-      <CameraConstraints constraints={videoConstraints} onChange={setVideoConstraints} />
+      <CameraSettings settings={cameraSettings} onChange={setCameraSettings} />
 
       <label>
         Image format:
