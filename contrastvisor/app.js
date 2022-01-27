@@ -8,6 +8,7 @@ import { pinchZoom } from './zoom.js';
 import { useLocalStorageState, useSignal } from "./hooks.js";
 import { DebugSettings, ImageFormat, png, ToggleSetting } from "./settings.js";
 import classNames from "classnames";
+import { InstallButton } from "./install.js";
 
 const negative = mat4.fromValues(
   -1, 0, 0, 0,
@@ -115,6 +116,8 @@ export function ContrastVisor({ filePrefix = "Contrast Visor capture" }) {
         <ToggleSetting value={renderCamera} onChange={setRenderCamera}>
           Render camera (iOS):
         </ToggleSetting>
+
+        <InstallButton>Install</InstallButton>
 
         <DebugSettings value={debugSettings} onChange={setDebugSettings} />
 
