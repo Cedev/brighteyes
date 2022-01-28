@@ -83,7 +83,7 @@ export function ContrastVisor({ filePrefix = "Contrast Visor capture" }) {
     mc.on('tap', () => current.tap());
 
     function getHorizontal() {
-      return window.getComputedStyle(screen).getPropertyValue('--cv-horizontal-layout');
+      return window.getComputedStyle(screen).getPropertyValue('--cv-horizontal-layout') == 'true';
     }
 
     function byLayout(gesture1, gesture2, action1, action2) {

@@ -1,5 +1,5 @@
 import React, { Children } from "react";
-import Select from 'react-select';
+import Select from '@cedricshock/react-select';
 import Toggle from 'react-toggle'
 import "react-toggle/style.css"
 import { useLenses, useLens } from "./hooks";
@@ -16,7 +16,6 @@ export function ImageFormat({ value, onChange }) {
     onChange={onChange}
   />
 }
-
 
 export function ToggleSetting({children, value, onChange}) { 
   return <label className="inline">

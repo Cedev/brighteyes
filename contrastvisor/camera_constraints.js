@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
-import Select from 'react-select';
-import CreatableSelect from 'react-select/creatable';
+import Select from '@cedricshock/react-select';
+import CreatableSelect from '@cedricshock/react-select/creatable';
 import Toggle from 'react-toggle'
 import "react-toggle/style.css"
 import { useErrorHandler } from './errors';
@@ -189,6 +189,9 @@ export function ResolutionSelector({ value: combobulated, onChange: onCombobulat
       className="resolution reactSelect"
       aria-label="Resolution"
       isClearable
+      blurInputOnSelect
+      blurInputOnClear
+      focusInputOnMenuOpen={false}
       value={{ value: resolution, label: resolution || "Any" }}
       onChange={value => changeResolution(value?.value)}
       options={options.map(resolution => ({ value: resolution, label: resolution }))}

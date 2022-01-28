@@ -1,6 +1,6 @@
 {
   "name": "contrastvisor",
-  "version": "0.4.8",
+  "version": "0.4.9",
   "description": "Spot details through your camera using principal components analysis and decorrelation stretch",
   "main": "index.js",
   "scripts": {
@@ -13,6 +13,7 @@
   "author": "Cedric Shock",
   "license": "MIT",
   "dependencies": {
+    "@cedricshock/react-select": "^5.2.200",
     "@petamoriken/float16": "^3.6.1",
     "classnames": "^2.3.1",
     "file-saver": "^2.0.5",
@@ -21,7 +22,6 @@
     "ml-matrix": "^6.8.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-select": "^5.2.2",
     "react-toggle": "^4.1.2",
     "twgl.js": "^4.19.1",
     "use-deep-compare-effect": "^1.8.1"

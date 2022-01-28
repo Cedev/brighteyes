@@ -28,41 +28,41 @@
     }
 
     .wrapper {
+      --cv-horizontal-layout:true;
       display: grid;
-      grid-template-rows: 100% 0;
-      grid-template-columns: 100%;
+      grid-template-rows: 100%;
+      grid-template-columns: 100% 0;
       grid-template-areas: 
         "screen"
         "settings"
     }
 
     .wrapper.settingsOpen {
-      grid-template-rows: min-content minmax(60%, 100%);
-      grid-template-columns: 100%;
+      grid-template-rows: 100%;
+      grid-template-columns: minmax(60%, 100%) min-content;
       grid-template-areas: 
-        "settings"
-        "screen"
+        "screen settings";
     }
   
     .panel {
       overflow: auto;
-      max-height: 40vh;
+      max-width: 40vw;
     }
 
-
-    @media (min-aspect-ratio: 1/1) {
+    @media (max-device-aspect-ratio: 1/1), (max-aspect-ratio: 1/1) {
       .wrapper {
-        --cv-horizontal-layout: true;
+        --cv-horizontal-layout:false;
       }
       .wrapper.settingsOpen {
-        grid-template-rows: 100%;
-        grid-template-columns: minmax(60%, 100%) min-content;
+        grid-template-rows: min-content minmax(60%, 100%);
+        grid-template-columns: 100%;
         grid-template-areas: 
-          "screen settings";
+          "settings"
+          "screen"
       }
       .panel {
-        max-height: unset;
-        max-width: 40vw;
+        max-width: unset;
+        max-height: 40vh;
       }
     }
     
